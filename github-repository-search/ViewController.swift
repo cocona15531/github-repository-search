@@ -24,6 +24,17 @@ class ViewController: UIViewController {
         super.viewDidLoad()
 
         view.backgroundColor = .white
+        setupButton()
+    }
+
+    private func setupButton() {
+        view.addSubview(getButton)
+        NSLayoutConstraint.activate([
+            getButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            getButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            getButton.widthAnchor.constraint(equalToConstant: 80),
+            getButton.heightAnchor.constraint(equalToConstant: 80),
+        ])
     }
 }
 
