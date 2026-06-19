@@ -5,9 +5,15 @@
 //  Created by Issei Ueda on 2026/06/05.
 //
 
+import Combine
 import UIKit
 
 class ViewController: UIViewController {
+
+    // ViewはViewModelを保持する。
+    private let viewModel = RepositorySearchViewModel()
+
+    private var cancellables = Set<AnyCancellable>()
 
     private let getButton: UIButton = {
         let button = UIButton(type: .system)
