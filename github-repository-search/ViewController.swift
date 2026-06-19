@@ -41,6 +41,13 @@ class ViewController: UIViewController {
             getButton.widthAnchor.constraint(equalToConstant: 80),
             getButton.heightAnchor.constraint(equalToConstant: 80),
         ])
+        // ボタンタップ時にViewModelへイベントを送る。
+        getButton.addTarget(self, action: #selector(didTapGetButton), for: .touchUpInside)
+    }
+
+    @objc private func didTapGetButton() {
+        // ViewModelのgetButtonTappedにイベントを送る。
+        viewModel.getButtonTapped.send()
     }
 }
 
