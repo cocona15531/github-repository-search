@@ -13,6 +13,9 @@ final class RepositorySearchViewModel {
     // PassthroughSubjectは値を保持せず、送られた瞬間だけ流す。
     let getButtonTapped = PassthroughSubject<Void, Never>()
 
+    // 購読（subscription）を保持するための必須セット。
+    private var cancellables = Set<AnyCancellable>()
+
     init() {
     }
 }
