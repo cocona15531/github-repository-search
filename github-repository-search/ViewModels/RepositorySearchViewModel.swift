@@ -17,5 +17,12 @@ final class RepositorySearchViewModel {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
+        // ここで購読。イベントが流れてきたときの処理を定義する。
+        getButtonTapped
+            .sink { _ in
+                // ボタンがタップされたときの処理をここに書く
+                print("GET button tapped")
+            }
+            .store(in: &cancellables)
     }
 }
