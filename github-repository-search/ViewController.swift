@@ -13,7 +13,7 @@ class ViewController: UIViewController {
     /// ViewはViewModelを保持する。
     private let viewModel = RepositorySearchViewModel()
 
-    /// 購読を保持しておくためのセット。
+    /// 購読を保持しておくためのプロパティ。これがないと購読がすぐ解放され値を受け取れない。
     private var cancellables = Set<AnyCancellable>()
 
     /// GETボタン。ここでは見た目だけを定義する。状態はViewModelのbuttonStateで管理する。
