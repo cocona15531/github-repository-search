@@ -28,6 +28,7 @@ final class RepositorySearchViewModel {
     /// 購読（subscription）を保持するための必須セット。
     private var cancellables = Set<AnyCancellable>()
 
+    /// ViewModelの初期化。ここでイベントの購読を行う。
     init() {
         // ここで購読。イベントが流れてきたときの処理を定義する。
         getButtonTapped

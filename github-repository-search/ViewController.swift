@@ -13,8 +13,10 @@ class ViewController: UIViewController {
     /// ViewはViewModelを保持する。
     private let viewModel = RepositorySearchViewModel()
 
+    /// 購読を保持しておくためのセット。
     private var cancellables = Set<AnyCancellable>()
 
+    /// GETボタン。ここでは見た目だけを定義する。状態はViewModelのbuttonStateで管理する。
     private let getButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("GET", for: .normal)
@@ -26,6 +28,8 @@ class ViewController: UIViewController {
         return button
     }()
 
+    /// Viewが表示されるときに呼ばれる。
+    /// ここでViewのセットアップとViewModelとのバインディングを行う。
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -53,6 +57,7 @@ class ViewController: UIViewController {
             .store(in: &cancellables)
     }
 
+    /// ボタンをViewに配置。
     private func setupButton() {
         view.addSubview(getButton)
         NSLayoutConstraint.activate([
