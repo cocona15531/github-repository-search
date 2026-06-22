@@ -31,6 +31,26 @@ class ViewController: UIViewController {
 
         view.backgroundColor = .white
         setupButton()
+        bindViewModel()
+    }
+
+    /// ViewModelの出力を購読し、状態の変化に応じてViewを更新する。
+    private func bindViewModel() {
+        viewModel.$buttonState
+            // UIの更新はメインスレッドで行う。
+            .receive(on: DispatchQueue.main)
+            // sinkで購読を開始し、値が流れてくるたびにクロージャを実行する。
+            .sink { [weak self] state in
+                // 状態に応じて背景色を切り替える。
+                switch state {
+                case .off:
+                    self?.getButton.backgroundColor = .systemBlue
+                case .on:
+                    self?.getButton.backgroundColor = .systemGreen
+                }
+            }
+            // storeで購読をcancellablesに保持する。これがないと購読がすぐ解放され値を受け取れない。
+            .store(in: &cancellables)
     }
 
     private func setupButton() {
