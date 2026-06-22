@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 
+@MainActor
 final class RepositorySearchViewModel {
     /// GETボタンの状態。ここでは色などの見た目は持たず、状態そのものだけを表す。
     enum ButtonState {
