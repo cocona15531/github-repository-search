@@ -37,4 +37,9 @@ final class RepositorySearchViewModel {
             }
             .store(in: &cancellables)
     }
+
+    /// ボタンの状態をオン・オフで反転させる。
+    private func toggleButtonState() {
+        buttonState = (buttonState == .off) ? .on : .off
+    }
 }
