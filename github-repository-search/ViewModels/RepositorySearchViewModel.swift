@@ -31,9 +31,9 @@ final class RepositorySearchViewModel {
     init() {
         // ここで購読。イベントが流れてきたときの処理を定義する。
         getButtonTapped
-            .sink { _ in
-                // ボタンがタップされたときの処理をここに書く
-                print("GET button tapped")
+            .sink { [weak self] in
+                // タップのたびにボタンの状態を反転させる。
+                self?.toggleButtonState()
             }
             .store(in: &cancellables)
     }
