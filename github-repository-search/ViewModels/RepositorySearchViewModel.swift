@@ -9,6 +9,12 @@ import Combine
 import Foundation
 
 final class RepositorySearchViewModel {
+    /// GETボタンの状態。ここでは色などの見た目は持たず、状態そのものだけを表す。
+    enum ButtonState {
+        case off
+        case on
+    }
+
     // ViewからViewModelへのイベント通知口。
     // PassthroughSubjectは値を保持せず、送られた瞬間だけ流す。
     let getButtonTapped = PassthroughSubject<Void, Never>()
