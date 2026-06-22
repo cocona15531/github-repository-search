@@ -17,6 +17,7 @@ final class RepositorySearchViewModel {
     }
 
     /// ViewからViewModelへのイベント通知口。
+    ///
     // PassthroughSubjectは値を保持せず、送られた瞬間だけ流す。
     let getButtonTapped = PassthroughSubject<Void, Never>()
 
