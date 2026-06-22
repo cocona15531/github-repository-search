@@ -71,8 +71,8 @@ class ViewController: UIViewController {
     }
 
     @objc private func didTapGetButton() {
-        // ViewModelのgetButtonTappedにイベントを送る。
-        viewModel.getButtonTapped.send()
+        // タップされたことをViewModelに伝える。
+        viewModel.didTapGetButton()
     }
 }
 
