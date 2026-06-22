@@ -10,7 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    // ViewはViewModelを保持する。
+    /// ViewはViewModelを保持する。
     private let viewModel = RepositorySearchViewModel()
 
     private var cancellables = Set<AnyCancellable>()
