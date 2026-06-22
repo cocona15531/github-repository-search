@@ -33,14 +33,10 @@ final class RepositorySearchViewModel {
         // ここで購読。イベントが流れてきたときの処理を定義する。
         getButtonTapped
             .sink { [weak self] in
-                // タップのたびにボタンの状態を反転させる。
-                self?.toggleButtonState()
+                guard let self else { return }
+                // タップのたびにボタンの状態をオン・オフで反転させる。
+                self.buttonState = (self.buttonState == .off) ? .on : .off
             }
             .store(in: &cancellables)
-    }
-
-    /// ボタンの状態をオン・オフで反転させる。
-    private func toggleButtonState() {
-        buttonState = (buttonState == .off) ? .on : .off
     }
 }
