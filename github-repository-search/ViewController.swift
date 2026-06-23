@@ -8,7 +8,7 @@
 import Combine
 import UIKit
 
-class ViewController: UIViewController {
+final class ViewController: UIViewController {
 
     // ViewはViewModelを保持する。
     private let viewModel = RepositorySearchViewModel()
