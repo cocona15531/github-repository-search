@@ -45,12 +45,7 @@ class ViewController: UIViewController {
             // sinkで購読を開始し、値が流れてくるたびにクロージャを実行する。
             .sink { [weak self] state in
                 // 状態に応じて背景色を切り替える。
-                switch state {
-                case .off:
-                    self?.getButton.backgroundColor = .systemBlue
-                case .on:
-                    self?.getButton.backgroundColor = .systemGreen
-                }
+                self?.getButton.backgroundColor = state == .off ? .systemBlue : .systemGreen
             }
             // storeで購読をcancellablesに保持する。これがないと購読がすぐ解放され値を受け取れない。
             .store(in: &cancellables)
