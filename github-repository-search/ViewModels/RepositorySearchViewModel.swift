@@ -23,9 +23,10 @@ final class RepositorySearchViewModel {
     private let getButtonTapped = PassthroughSubject<Void, Never>()
 
     /// ボタンの状態。View側はこれを購読して背景色を更新する。
-    // @Publishedを付けると「$buttonState」という変化通知用のPublisherが自動で作られる。
-    // そして@Publishedは値が変わるたびに$buttonState経由で流す。購読開始時に現在値も即座に流れる。
-    // private(set)で、状態を変えられるのはViewModel内部だけに限定する。
+    ///
+    /// @Publishedを付けると「$buttonState」という変化通知用のPublisherが自動で作られ、
+    /// 値が変わるたびに$buttonState経由で流す。購読開始時に現在値も即座に流れる。
+    /// private(set)で、状態を変えられるのはViewModel内部だけに限定する。
     @Published private(set) var buttonState: ButtonState = .off
 
     /// 購読（subscription）を保持するための必須セット。
