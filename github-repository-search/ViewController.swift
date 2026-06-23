@@ -10,7 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    /// ViewはViewModelを保持する。
+    // ViewはViewModelを保持する。
     private let viewModel = RepositorySearchViewModel()
 
     /// 購読を保持しておくためのプロパティ。これがないと購読がすぐ解放され値を受け取れない。
