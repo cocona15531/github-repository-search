@@ -29,7 +29,9 @@ final class RepositorySearchViewModel {
     /// private(set)で、状態を変えられるのはViewModel内部だけに限定する。
     @Published private(set) var buttonState: ButtonState = .off
 
-    /// 購読（subscription）を保持するための必須セット。
+    /// 購読（subscription）を保持しておくためのセット。
+    ///
+    /// これに保持しないと購読がすぐに解放され、イベントを受け取れなくなる。
     private var cancellables = Set<AnyCancellable>()
 
     /// ViewModelの初期化。
