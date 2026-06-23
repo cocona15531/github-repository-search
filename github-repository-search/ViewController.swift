@@ -16,6 +16,9 @@ class ViewController: UIViewController {
     /// 購読を保持しておくためのプロパティ。これがないと購読がすぐ解放され値を受け取れない。
     private var cancellables = Set<AnyCancellable>()
 
+    /// GETボタンをプロパティとして定義。
+    ///
+    /// ここではタイトル・最初の背景色などを定義する。
     private let getButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("GET", for: .normal)
