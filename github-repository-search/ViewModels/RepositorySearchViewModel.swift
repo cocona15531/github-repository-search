@@ -32,9 +32,10 @@ final class RepositorySearchViewModel {
     /// 購読（subscription）を保持するための必須セット。
     private var cancellables = Set<AnyCancellable>()
 
-    /// ViewModelの初期化。ここでイベントの購読を行う。
+    /// ViewModelの初期化。
     init() {
-        // ここで購読。イベントが流れてきたときの処理を定義する。
+        // ここでイベントの購読を行う。
+        // イベントが流れてきたときの処理を定義する。
         getButtonTapped
             .sink { [weak self] in
                 guard let self else { return }
