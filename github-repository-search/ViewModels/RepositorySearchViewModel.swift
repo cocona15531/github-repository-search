@@ -37,11 +37,10 @@ final class RepositorySearchViewModel {
     /// ViewModelの初期化。
     init() {
         // ここでイベントの購読を行う。
-        // イベントが流れてきたときの処理を定義する。
         getButtonTapped
             .sink { [weak self] in
                 guard let self else { return }
-                // タップのたびにボタンの状態をオン・オフで反転させる。
+                // ボタンのタップイベントが来るたびにボタンの状態をオン・オフで反転させる。
                 self.buttonState = (self.buttonState == .off) ? .on : .off
             }
             .store(in: &cancellables)
