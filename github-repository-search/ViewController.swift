@@ -5,16 +5,70 @@
 //  Created by Issei Ueda on 2026/06/05.
 //
 
+import Combine
 import UIKit
 
-class ViewController: UIViewController {
+final class ViewController: UIViewController {
 
+    // ViewはViewModelを保持する。
+    private let viewModel = RepositorySearchViewModel()
+
+    /// 購読を保持しておくためのプロパティ。
+    ///
+    /// これに保持しないと購読がすぐに解放され、イベントを受け取れなくなる。
+    private var cancellables = Set<AnyCancellable>()
+
+    /// GETボタンをプロパティとして定義。
+    ///
+    /// ここではタイトル・最初の背景色などを定義する。
+    private let getButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("GET", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 18)
+        button.backgroundColor = .systemBlue
+        button.layer.cornerRadius = 12
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    /// Viewが表示されるときに呼ばれる。
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .blue
+        view.backgroundColor = .white
+        // ここでButtonのセットアップとViewModelとのバインディングを行う。
+        setupButton()
+        bindViewModel()
     }
 
+    /// ViewModelの出力を購読し、状態の変化に応じてViewを更新する。
+    private func bindViewModel() {
+        viewModel.$buttonState
+            // UIの更新はメインスレッドで行う。
+            .receive(on: DispatchQueue.main)
+            // sinkで購読を開始し、値が流れてくるたびにクロージャを実行する。
+            .sink { [weak self] state in
+                // 状態に応じて背景色を切り替える。
+                self?.getButton.backgroundColor = state == .off ? .systemBlue : .systemGreen
+            }
+            // storeで購読をcancellablesに保持する。これがないと購読がすぐ解放され値を受け取れない。
+            .store(in: &cancellables)
+    }
 
+    /// GETボタンの UI 設定。
+    private func setupButton() {
+        view.addSubview(getButton)
+        NSLayoutConstraint.activate([
+            getButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            getButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            getButton.widthAnchor.constraint(equalToConstant: 80),
+            getButton.heightAnchor.constraint(equalToConstant: 80),
+        ])
+        // ボタンタップ時にViewModelへイベントを送る。
+        getButton.addAction(UIAction { [weak self] _ in
+            self?.viewModel.didTapGetButton()
+        }, for: .touchUpInside)
+    }
 }
 
