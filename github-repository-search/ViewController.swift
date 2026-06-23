@@ -28,11 +28,11 @@ class ViewController: UIViewController {
     }()
 
     /// Viewが表示されるときに呼ばれる。
-    /// ここでViewのセットアップとViewModelとのバインディングを行う。
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = .white
+        // ここでButtonのセットアップとViewModelとのバインディングを行う。
         setupButton()
         bindViewModel()
     }
