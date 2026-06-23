@@ -51,7 +51,7 @@ class ViewController: UIViewController {
             .store(in: &cancellables)
     }
 
-    /// ボタンをViewに配置。
+    /// GETボタンの UI 設定。
     private func setupButton() {
         view.addSubview(getButton)
         NSLayoutConstraint.activate([
