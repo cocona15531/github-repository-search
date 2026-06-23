@@ -16,7 +16,6 @@ class ViewController: UIViewController {
     /// 購読を保持しておくためのプロパティ。これがないと購読がすぐ解放され値を受け取れない。
     private var cancellables = Set<AnyCancellable>()
 
-    /// GETボタン。ここでは見た目だけを定義する。状態はViewModelのbuttonStateで管理する。
     private let getButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("GET", for: .normal)
