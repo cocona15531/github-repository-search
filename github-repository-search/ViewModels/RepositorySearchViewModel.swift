@@ -19,7 +19,7 @@ final class RepositorySearchViewModel {
     /// ViewからViewModelへのイベント通知口。
     ///
     /// PassthroughSubjectは値を保持せず、送られた瞬間だけ流す。
-    // privateにして外部から購読できないようにし、入口はdidTapGetButton()に限定する。
+    /// privateにして外部から購読できないようにし、入口はdidTapGetButton()に限定する。
     private let getButtonTapped = PassthroughSubject<Void, Never>()
 
     /// ボタンの状態。View側はこれを購読して背景色を更新する。
