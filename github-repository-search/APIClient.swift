@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+final class APIClient {
+    private func makeRequest() -> URLRequest? {
+        return nil
+    }
+}
