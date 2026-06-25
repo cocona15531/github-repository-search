@@ -11,6 +11,13 @@ final class APIClient {
 
     /// GitHub のリポジトリ検索 API を呼び出す。
     func searchRepositories() {
+
+        // URLRequest を取り出す。
+        guard let request = makeRequest() else {
+            // URLRequest の作成に失敗した場合はエラーを出力して終了する。
+            print("URLRequest の作成に失敗しました。")
+            return
+        }
     }
 
     /// URLRequest を作成する。
