@@ -37,9 +37,10 @@ final class APIClient {
 
         // 設定は推奨されていないが、コードサンプルでは X-GitHub-Api-Version ヘッダーを設定しており、
         // APIのバージョンを指定することで将来的な互換性の問題を回避できる可能性があるため、設定しておく。
+        // ここではコードサンプルに記載されている日付を使用する。
         request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
 
-        // 5. 作成した URLRequest を返す。
+        // 6. 作成した URLRequest を返す。
         return request
     }
 }
