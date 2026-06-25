@@ -25,6 +25,13 @@ final class APIClient {
         guard let url = components?.url else {
             return nil
         }
-        return nil
+
+        // 4. URLRequest を作成する。
+        var request = URLRequest(url: url)
+        // GET メソッドを使用するので、httpMethod を "GET" に設定する。
+        request.httpMethod = "GET"
+
+        // 5. 作成した URLRequest を返す。
+        return request
     }
 }
