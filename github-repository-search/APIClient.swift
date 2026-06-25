@@ -9,6 +9,10 @@ import Foundation
 
 final class APIClient {
 
+    /// GitHub のリポジトリ検索 API を呼び出す。
+    func searchRepositories() {
+    }
+
     /// URLRequest を作成する。
     private func makeRequest() -> URLRequest? {
 
