@@ -8,6 +8,8 @@
 import Foundation
 
 final class APIClient {
+
+    /// URLRequestを作成する。
     private func makeRequest() -> URLRequest? {
         return nil
     }
