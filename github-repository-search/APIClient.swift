@@ -18,6 +18,26 @@ final class APIClient {
             print("URLRequest の作成に失敗しました。")
             return
         }
+
+        // URLSession を使用して API を呼び出す。
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            // エラーが発生した場合はエラーを出力して終了する。
+            if let error = error {
+                print("API呼び出し中にエラーが発生しました: \(error)")
+                return
+            }
+
+            // レスポンスのステータスコードを確認する。
+            if let httpResponse = response as? HTTPURLResponse {
+                print("HTTPステータスコード: \(httpResponse.statusCode)")
+            }
+
+            // 取得したデータを文字列として出力する。
+            if let data = data, let jsonString = String(data: data, encoding: .utf8) {
+                print("取得したデータ: \(jsonString)")
+            }
+        }
+        task.resume()
     }
 
     /// URLRequest を作成する。
