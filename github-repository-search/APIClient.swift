@@ -14,7 +14,6 @@ final class APIClient {
     /// completion は API の呼び出しが完了したときに呼ばれる。
     /// 成功時には SearchResponse が渡され、失敗時には Error が渡される。
     func searchRepositories(completion: @escaping (Result<SearchResponse, Error>) -> Void) {
-
         // URLRequest を取り出す。
         guard let request = makeRequest() else {
             // URLRequest の作成に失敗した場合はエラーを出力して終了する。
