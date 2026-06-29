@@ -15,4 +15,10 @@ struct SearchResponse: Decodable {
     let items: [Repository]
 }
 struct Repository: Decodable {
-  }
+    /// GitHub のリポジトリ名。
+    let name: String
+    /// GitHub のリポジトリの説明。nil の場合もある。
+    let description: String?
+    /// GitHub のリポジトリのスター数。
+    let stargazersCount: Int
+}
