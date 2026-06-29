@@ -8,7 +8,6 @@
 import Foundation
 
 final class APIClient {
-
     /// GitHub のリポジトリ検索 API を呼び出す。
     ///
     /// completion は API の呼び出しが完了したときに呼ばれる。
