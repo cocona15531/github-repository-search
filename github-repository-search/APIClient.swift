@@ -10,7 +10,10 @@ import Foundation
 final class APIClient {
 
     /// GitHub のリポジトリ検索 API を呼び出す。
-    func searchRepositories() {
+    ///
+    /// completion は API の呼び出しが完了したときに呼ばれる。
+    /// 成功時には SearchResponse が渡され、失敗時には Error が渡される。
+    func searchRepositories(completion: @escaping (Result<SearchResponse, Error>) -> Void) {
 
         // URLRequest を取り出す。
         guard let request = makeRequest() else {
