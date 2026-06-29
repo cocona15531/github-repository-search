@@ -27,6 +27,7 @@ final class APIClient {
             // エラーが発生した場合はエラーを出力して終了する。
             if let error = error {
                 print("API呼び出し中にエラーが発生しました: \(error)")
+                completion(.failure(error))
                 return
             }
 
