@@ -21,4 +21,12 @@ struct Repository: Decodable {
     let description: String?
     /// GitHub のリポジトリのスター数。
     let stargazersCount: Int
+
+    /// JSON のキーと構造体のプロパティ名が異なるのでマッピングを行う。
+    enum CodingKeys: String, CodingKey {
+        case name
+        case description
+        /// stargazersCount は JSON では "stargazers_count" というキーで表されるため、対応づけを行う。
+        case stargazersCount = "stargazers_count"
+    }
 }
