@@ -19,6 +19,7 @@ final class APIClient {
         guard let request = makeRequest() else {
             // URLRequest の作成に失敗した場合はエラーを出力して終了する。
             print("URLRequest の作成に失敗しました。")
+            // completion に失敗結果を渡す。
             completion(.failure(APIError.invalidURL))
             return
         }
@@ -28,6 +29,7 @@ final class APIClient {
             // エラーが発生した場合はエラーを出力して終了する。
             if let error = error {
                 print("API呼び出し中にエラーが発生しました: \(error)")
+                // completion に失敗結果を渡す。
                 completion(.failure(error))
                 return
             }
@@ -35,6 +37,7 @@ final class APIClient {
             guard let data = data else {
                 // データが nil の場合はエラーを出力して終了する。
                 print("取得したデータが nil です。")
+                // completion に失敗結果を渡す。
                 completion(.failure(APIError.noData))
                 return
             }
