@@ -14,6 +14,7 @@ struct SearchResponse: Decodable {
     /// レポジトリ情報を含んだ配列。
     let items: [Repository]
 }
+
 struct Repository: Decodable {
     /// GitHub のリポジトリ名。
     let name: String
