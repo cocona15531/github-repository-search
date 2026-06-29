@@ -45,6 +45,20 @@ final class APIClient {
                 print("取得したデータが nil です。")
                 return
             }
+
+            // デコードは失敗する可能性があるため do-catch で囲む。
+            do {
+                // JSONDecoder を使用して、取得した data を SearchResponse 型にデコードする。
+                // throwing 関数内での呼び出しには try を書くことが必須。
+                let searchResponse = try JSONDecoder().decode(SearchResponse.self, from: data)
+                // デコードに成功した場合は completion に成功結果を渡す。
+                completion(.success(searchResponse))
+            } catch {
+                // デコードに失敗した場合はエラーを出力して終了する。
+                print("デコードに失敗しました: \(error)")
+                // completion に失敗結果を渡す。
+                completion(.failure(error))
+            }
         }
         task.resume()
     }
