@@ -39,6 +39,12 @@ final class APIClient {
             if let data = data, let jsonString = String(data: data, encoding: .utf8) {
                 print("取得したデータ: \(jsonString)")
             }
+
+            guard let data = data else {
+                // データが nil の場合はエラーを出力して終了する。
+                print("取得したデータが nil です。")
+                return
+            }
         }
         task.resume()
     }
