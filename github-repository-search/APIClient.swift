@@ -11,8 +11,8 @@ final class APIClient {
     /// GitHub のリポジトリ検索 API を呼び出す。
     ///
     /// completion は API の呼び出しが完了したときに呼ばれる。
-    /// 成功時には SearchResponse が渡され、失敗時には Error が渡される。
-    func searchRepositories(completion: @escaping (Result<SearchResponse, Error>) -> Void) {
+    /// 成功時には SearchResponse が渡され、失敗時には APIError が渡される。
+    func searchRepositories(completion: @escaping (Result<SearchResponse, APIError>) -> Void) {
         // URLRequest を取り出す。
         guard let request = makeRequest() else {
             // URLRequest の作成に失敗した場合はエラーを出力して終了する。
@@ -28,7 +28,7 @@ final class APIClient {
             if let error = error {
                 print("API呼び出し中にエラーが発生しました: \(error)")
                 // completion に失敗結果を渡す。
-                completion(.failure(error))
+                completion(.failure(APIError.urlSession(error)))
                 return
             }
 
@@ -51,7 +51,7 @@ final class APIClient {
                 // デコードに失敗した場合はエラーを出力して終了する。
                 print("デコードに失敗しました: \(error)")
                 // completion に失敗結果を渡す。
-                completion(.failure(error))
+                completion(.failure(APIError.decode(error)))
             }
         }
         task.resume()
