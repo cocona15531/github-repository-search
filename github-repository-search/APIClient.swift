@@ -31,16 +31,6 @@ final class APIClient {
                 return
             }
 
-            // レスポンスのステータスコードを確認する。
-            if let httpResponse = response as? HTTPURLResponse {
-                print("HTTPステータスコード: \(httpResponse.statusCode)")
-            }
-
-            // 取得したデータを文字列として出力する。
-            if let data = data, let jsonString = String(data: data, encoding: .utf8) {
-                print("取得したデータ: \(jsonString)")
-            }
-
             guard let data = data else {
                 // データが nil の場合はエラーを出力して終了する。
                 print("取得したデータが nil です。")
