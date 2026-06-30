@@ -47,6 +47,20 @@ final class RepositorySearchViewModel {
                 guard let self else { return }
                 // ボタンのタップイベントが来るたびにボタンの状態をオン・オフで反転させる。
                 self.buttonState = (self.buttonState == .off) ? .on : .off
+
+                // APIClient を使って GitHub のリポジトリ検索 API を呼び出す。
+                self.apiClient.searchRepositories { result in
+                    // メインスレッドで UI 更新を行うために @MainActor でラップする。
+                    Task { @MainActor in
+                        switch result {
+                        case .success(let searchResponse):
+                            // 検索結果のリポジトリ一覧を更新する。これにより View 側の購読者に通知される。
+                            self.repositories = searchResponse.items
+                        case .failure(let error):
+                            print("API 呼び出し中にエラーが発生しました: \(error)")
+                        }
+                    }
+                }
             }
             .store(in: &cancellables)
     }
