@@ -36,6 +36,9 @@ final class RepositorySearchViewModel {
 
     private let apiClient = APIClient()
 
+    /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
+    @Published private(set) var repositories: [Repository] = []
+
     /// ViewModelの初期化。
     init() {
         // ここでイベントの購読を行う。
