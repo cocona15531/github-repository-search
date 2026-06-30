@@ -34,6 +34,8 @@ final class RepositorySearchViewModel {
     /// これに保持しないと購読がすぐに解放され、イベントを受け取れなくなる。
     private var cancellables = Set<AnyCancellable>()
 
+    private let apiClient = APIClient()
+
     /// ViewModelの初期化。
     init() {
         // ここでイベントの購読を行う。
