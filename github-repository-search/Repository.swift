@@ -12,7 +12,7 @@ import Foundation
 /// Decodable プロトコルに準拠しているので、JSON から自動的にデコードできる。
 /// バックグラウンドスレッド（dataTask のクロージャ内）でデコードするため、
 /// メインアクター隔離を外す nonisolated を付与している。
-nonisolated struct SearchResponse: Decodable {
+nonisolated struct SearchResponse: ResponseType {
     /// リポジトリ情報を含んだ配列。
     let items: [Repository]
 }
