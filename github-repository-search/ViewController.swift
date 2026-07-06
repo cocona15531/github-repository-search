@@ -10,7 +10,9 @@ import UIKit
 
 final class ViewController: UIViewController {
     private let viewModel = RepositorySearchViewModel()
+
     private var cancellables = Set<AnyCancellable>()
+
     private let getButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("GET", for: .normal)
