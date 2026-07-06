@@ -14,8 +14,10 @@ import Foundation
 nonisolated enum APIError: Error {
     /// URL の作成に失敗した場合のエラー。
     case invalidURL
-    /// データが取得できなかった場合のエラー。
-    case noData
+    /// レスポンスとして解釈できなかった場合のエラー。
+    case invalidResponse
+    /// ステータスコードが 2xx 以外だった場合のエラー。
+    case unacceptable(statusCode: Int)
     /// URLSession でのエラー。
     case urlSession(Error)
     /// デコードに失敗した場合のエラー。
