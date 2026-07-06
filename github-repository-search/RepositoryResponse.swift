@@ -1,5 +1,5 @@
 //
-//  Repository.swift
+//  RepositoryResponse.swift
 //  github-repository-search
 //
 //  Created by Issei Ueda on 2026/06/26.
@@ -14,13 +14,13 @@ import Foundation
 /// メインアクター隔離を外す nonisolated を付与している。
 nonisolated struct SearchResponse: ResponseType {
     /// リポジトリ情報を含んだ配列。
-    let items: [Repository]
+    let items: [RepositoryResponse]
 }
 
 /// GitHub のリポジトリ 1 件分の情報を表す構造体。
 ///
 /// SearchResponse と同様、バックグラウンドでデコードするため nonisolated を付与している。
-nonisolated struct Repository: Decodable {
+nonisolated struct RepositoryResponse: Decodable {
     /// GitHub のリポジトリ名。
     let name: String
     /// GitHub のリポジトリの説明。nil の場合もある。
