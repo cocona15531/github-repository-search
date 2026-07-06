@@ -23,3 +23,21 @@ nonisolated enum APIError: Error {
     /// デコードに失敗した場合のエラー。
     case decode(Error)
 }
+
+/// APIError を LocalizedError に準拠させ、デバッグ用のエラー内容を提供する。
+extension APIError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "URL が無効です。"
+        case .invalidResponse:
+            return "レスポンスが無効です。"
+        case .unacceptable(let statusCode):
+            return "ステータスコードが 2xx 以外でした: \(statusCode)"
+        case .urlSession(let error):
+            return "API 呼び出し中にエラーが発生しました: \(error.localizedDescription)"
+        case .decode(let error):
+            return "デコードに失敗しました: \(error.localizedDescription)"
+        }
+    }
+}
