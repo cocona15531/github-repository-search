@@ -8,19 +8,13 @@
 import Foundation
 
 /// GitHub のリポジトリ検索 API のレスポンスを表す構造体。
-///
-/// Decodable プロトコルに準拠しているので、JSON から自動的にデコードできる。
-/// バックグラウンドスレッド（dataTask のクロージャ内）でデコードするため、
-/// メインアクター隔離を外す nonisolated を付与している。
-nonisolated struct SearchResponse: ResponseType {
+struct SearchResponse: ResponseType {
     /// リポジトリ情報を含んだ配列。
     let items: [RepositoryResponse]
 }
 
 /// GitHub のリポジトリ 1 件分の情報を表す構造体。
-///
-/// SearchResponse と同様、バックグラウンドでデコードするため nonisolated を付与している。
-nonisolated struct RepositoryResponse: Decodable {
+struct RepositoryResponse: Decodable {
     /// GitHub のリポジトリ名。
     let name: String
     /// GitHub のリポジトリの説明。nil の場合もある。
