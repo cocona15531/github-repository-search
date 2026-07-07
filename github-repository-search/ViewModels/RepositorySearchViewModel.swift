@@ -29,36 +29,25 @@ final class RepositorySearchViewModel {
     /// private(set)で、状態を変えられるのはViewModel内部だけに限定する。
     @Published private(set) var buttonState: ButtonState = .off
 
-    /// 購読（subscription）を保持しておくためのプロパティ。
-    ///
-    /// これに保持しないと購読がすぐに解放され、イベントを受け取れなくなる。
     private var cancellables = Set<AnyCancellable>()
 
     private let apiClient = APIClient()
 
     /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
-    @Published private(set) var repositories: [Repository] = []
+    @Published private(set) var repositories: [RepositoryResponse] = []
 
-    /// ViewModelの初期化。
     init() {
-        // ここでイベントの購読を行う。
         getButtonTapped
             .sink { [weak self] in
                 guard let self else { return }
-                // ボタンのタップイベントが来るたびにボタンの状態をオン・オフで反転させる。
                 self.buttonState = (self.buttonState == .off) ? .on : .off
 
-                // APIClient を使って GitHub のリポジトリ検索 API を呼び出す。
-                self.apiClient.searchRepositories { result in
-                    // メインスレッドで UI 更新を行うために @MainActor でラップする。
-                    Task { @MainActor in
-                        switch result {
-                        case .success(let searchResponse):
-                            // 検索結果のリポジトリ一覧を更新する。これにより View 側の購読者に通知される。
-                            self.repositories = searchResponse.items
-                        case .failure(let error):
-                            print("API 呼び出し中にエラーが発生しました: \(error)")
-                        }
+                Task {
+                    do {
+                        let searchResponse: SearchResponse = try await self.apiClient.send(SearchRepositoriesRequest(query: "Swift"))
+                        self.repositories = searchResponse.items
+                    } catch {
+                        print("API 呼び出し中にエラーが発生しました: \(error)")
                     }
                 }
             }
