@@ -45,7 +45,7 @@ final class RepositorySearchViewModel {
                 Task {
                     do {
                         let searchResponse: SearchResponse = try await self.apiClient.send(SearchRepositoriesRequest(query: "Swift"))
-                        self.repositories = searchResponse.items
+                        self.repositories = searchResponse.repositories
                     } catch {
                         print("API 呼び出し中にエラーが発生しました: \(error)")
                     }
