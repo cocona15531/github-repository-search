@@ -10,14 +10,19 @@ import Foundation
 /// GitHub のリポジトリ検索 API のレスポンスを表す構造体。
 struct SearchResponse: ResponseType {
     /// リポジトリ情報を含んだ配列。
-    let items: [RepositoryResponse]
+    let repositories: [RepositoryResponse]
+
+    /// JSON のキーと構造体のプロパティ名が異なるのでマッピングを行う。
+    enum CodingKeys: String, CodingKey {
+        case repositories = "items"
+    }
 }
 
 /// GitHub のリポジトリ 1 件分の情報を表す構造体。
 struct RepositoryResponse: Decodable {
     /// GitHub のリポジトリ名。
     let name: String
-    /// GitHub のリポジトリの説明。nil の場合もある。
+    /// GitHub のリポジトリの説明。リポジトリに説明が設定されていない場合は nil になる。
     let description: String?
     /// GitHub のリポジトリのスター数。
     let stargazersCount: Int
