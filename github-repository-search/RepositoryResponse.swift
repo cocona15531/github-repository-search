@@ -22,7 +22,7 @@ struct SearchResponse: ResponseType {
 struct RepositoryResponse: Decodable {
     /// GitHub のリポジトリ名。
     let name: String
-    /// GitHub のリポジトリの説明。nil の場合もある。
+    /// GitHub のリポジトリの説明。リポジトリに説明が設定されていない場合は nil になる。
     let description: String?
     /// GitHub のリポジトリのスター数。
     let stargazersCount: Int
