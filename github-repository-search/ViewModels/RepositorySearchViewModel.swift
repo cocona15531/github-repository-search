@@ -31,11 +31,25 @@ final class RepositorySearchViewModel {
 
     private var cancellables = Set<AnyCancellable>()
 
+    private let apiClient = APIClient()
+
+    /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
+    @Published private(set) var repositories: [RepositoryResponse] = []
+
     init() {
         getButtonTapped
             .sink { [weak self] in
                 guard let self else { return }
                 self.buttonState = (self.buttonState == .off) ? .on : .off
+
+                Task {
+                    do {
+                        let searchResponse: SearchResponse = try await self.apiClient.send(SearchRepositoriesRequest(query: "Swift"))
+                        self.repositories = searchResponse.repositories
+                    } catch {
+                        print(error.localizedDescription)
+                    }
+                }
             }
             .store(in: &cancellables)
     }
