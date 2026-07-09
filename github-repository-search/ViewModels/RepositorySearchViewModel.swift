@@ -29,18 +29,12 @@ final class RepositorySearchViewModel {
     /// private(set)で、状態を変えられるのはViewModel内部だけに限定する。
     @Published private(set) var buttonState: ButtonState = .off
 
-    /// 購読（subscription）を保持しておくためのプロパティ。
-    ///
-    /// これに保持しないと購読がすぐに解放され、イベントを受け取れなくなる。
     private var cancellables = Set<AnyCancellable>()
 
-    /// ViewModelの初期化。
     init() {
-        // ここでイベントの購読を行う。
         getButtonTapped
             .sink { [weak self] in
                 guard let self else { return }
-                // ボタンのタップイベントが来るたびにボタンの状態をオン・オフで反転させる。
                 self.buttonState = (self.buttonState == .off) ? .on : .off
             }
             .store(in: &cancellables)
