@@ -20,6 +20,8 @@ struct SearchResponse: ResponseType {
 
 /// GitHub のリポジトリ 1 件分の情報を表す構造体。
 struct RepositoryResponse: Decodable {
+    /// GitHub のリポジトリを一意に識別するID。
+    let id: Int
     /// GitHub のリポジトリ名。
     let name: String
     /// GitHub のリポジトリの説明。リポジトリに説明が設定されていない場合は nil になる。
@@ -29,6 +31,7 @@ struct RepositoryResponse: Decodable {
 
     /// JSON のキーと構造体のプロパティ名が異なるのでマッピングを行う。
     enum CodingKeys: String, CodingKey {
+        case id
         case name
         case description
         /// stargazersCount は JSON では "stargazers_count" というキーで表されるため、対応づけを行う。
