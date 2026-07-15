@@ -32,6 +32,7 @@ final class RepositoryCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        backgroundColor = .systemGray6
         setupViews()
     }
 
