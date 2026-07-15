@@ -5,6 +5,7 @@
 //  Created by Issei Ueda on 2026/07/14.
 //
 
+import SwiftUI
 import UIKit
 
 /// 一覧の1件分のリポジトリ（名前・description・スター数）を表示するセル。
@@ -231,13 +232,44 @@ final class RepositoryCell: UICollectionViewCell {
     }
 }
 
-#Preview {
-    let cell = RepositoryCell(frame: CGRect(x: 0, y: 0, width: 350, height: 80))
-    cell.configure(with: RepositoryRowUIModel(
-        id: 1,
-        name: "swift",
-        description: "The Swift Programming Language",
-        starCountText: "★ 68000"
-    ))
-    return cell
+struct RepositoryCellPreview: PreviewProvider {
+    struct Wrapper: UIViewRepresentable {
+        let repository: RepositoryRowUIModel
+
+        func makeUIView(context: Context) -> some UIView {
+            let cell = RepositoryCell(frame: CGRect(x: 0, y: 0, width: 350, height: 0))
+            cell.configure(with: repository)
+            return cell.contentView
+        }
+
+        func updateUIView(_ uiView: UIViewType, context: Context) {}
+    }
+
+    static var previews: some View {
+        Group {
+            Wrapper(repository: RepositoryRowUIModel(
+                id: 1,
+                name: "swift",
+                description: "The Swift Programming Language",
+                starCountText: "6.2万",
+                ownerLogin: "apple",
+                ownerAvatarURL: URL(string: "https://avatars.githubusercontent.com/u/10639145?v=4"),
+                languageText: "C++"
+            ))
+            .previewLayout(.fixed(width: 350, height: 148))
+            .previewDisplayName("言語・アバターあり")
+
+            Wrapper(repository: RepositoryRowUIModel(
+                id: 2,
+                name: "sample-repo",
+                description: "説明はありません",
+                starCountText: "10",
+                ownerLogin: "someone",
+                ownerAvatarURL: nil,
+                languageText: nil
+            ))
+            .previewLayout(.fixed(width: 350, height: 148))
+            .previewDisplayName("言語・アバターなし")
+        }
+    }
 }
