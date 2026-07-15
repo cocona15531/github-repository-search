@@ -148,7 +148,18 @@ final class RepositoryCell: UICollectionViewCell {
     func configure(with repository: RepositoryRowUIModel) {
         nameLabel.text = repository.name
         descriptionLabel.text = repository.description
+        ownerNameLabel.text = repository.ownerLogin
         starCountLabel.text = repository.starCountText
+
+        if let languageText = repository.languageText {
+            languageLabel.text = languageText
+            languageDotView.backgroundColor = Self.languageColors[languageText] ?? .systemGray3
+            languageStackView.isHidden = false
+        } else {
+            languageStackView.isHidden = true
+        }
+
+        loadAvatarImage(from: repository.ownerAvatarURL)
     }
 
     /// avatars.githubusercontent.com はGitHub APIとは別ホストの画像バイナリなので、
