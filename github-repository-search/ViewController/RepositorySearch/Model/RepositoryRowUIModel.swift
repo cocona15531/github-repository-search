@@ -13,4 +13,7 @@ nonisolated struct RepositoryRowUIModel: Hashable, Sendable {
     let name: String
     let description: String
     let starCountText: String
+    let ownerLogin: String
+    let ownerAvatarURL: URL?
+    let languageText: String?
 }
