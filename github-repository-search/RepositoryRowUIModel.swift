@@ -8,7 +8,7 @@
 import Foundation
 
 /// 1セル分をそのまま画面に表示できる形になったデータモーデル。
-struct RepositoryRowUIModel: Hashable {
+nonisolated struct RepositoryRowUIModel: Hashable, Sendable {
     let id: Int
     let name: String
     let description: String
