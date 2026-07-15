@@ -9,48 +9,102 @@ import Combine
 import UIKit
 
 final class ViewController: UIViewController {
-    private let viewModel = RepositorySearchViewModel()
+    /// プロジェクト全体がデフォルトで MainActor 分離される設定になっており、Hashable は MainActor 限定として扱われてしまう。
+    /// NSDiffableDataSourceSnapshot は Sendableな型を要求するため、nonisolated を付けて明示的に分離を外さないとビルドエラーになる。
+    private nonisolated enum Section: Hashable {
+        case main
+    }
 
+    private let viewModel = RepositorySearchViewModel()
     private var cancellables = Set<AnyCancellable>()
 
-    private let getButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("GET", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = .boldSystemFont(ofSize: 18)
-        button.backgroundColor = .systemBlue
-        button.layer.cornerRadius = 12
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
+    private let searchBar: UISearchBar = {
+        let searchBar = UISearchBar()
+        searchBar.placeholder = "リポジトリを検索"
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        return searchBar
     }()
+
+    private lazy var collectionView: UICollectionView = {
+        let view = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private lazy var dataSource = makeDataSource()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-        setupButton()
+        searchBar.delegate = self
+        setupViews()
         bindViewModel()
     }
 
+    private func setupViews() {
+        view.addSubview(searchBar)
+        view.addSubview(collectionView)
+
+        NSLayoutConstraint.activate([
+            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+    }
+
+    /// 一覧の各行を縦に並べるだけのシンプルな CompositionalLayout を組み立てる。
+    private func makeLayout() -> UICollectionViewCompositionalLayout {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(80))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(80))
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 16
+        section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+
+    /// RepositoryCell を RepositoryRowUIModel で設定する DiffableDataSource を組み立てる。
+    private func makeDataSource() -> UICollectionViewDiffableDataSource<Section, RepositoryRowUIModel> {
+        let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { cell, _, repository in
+            cell.configure(with: repository)
+        }
+
+        return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, repository in
+            collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: repository)
+        }
+    }
+
+    /// ViewModelの検索結果を購読し、スナップショットを作り直して一覧に反映する。
+    ///
+    /// 新旧のスナップショットの差分を DiffableDataSource が自動計算するため、
+    /// reloadData() を呼ばずとも変化した行だけがアニメーション付きで更新される。
     private func bindViewModel() {
-        viewModel.$buttonState
+        viewModel.$repositories
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                self?.getButton.backgroundColor = state == .off ? .systemBlue : .systemGreen
+            .sink { [weak self] repositories in
+                guard let self else { return }
+                var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
+                snapshot.appendSections([.main])
+                snapshot.appendItems(repositories, toSection: .main)
+                self.dataSource.apply(snapshot, animatingDifferences: true)
             }
             .store(in: &cancellables)
     }
+}
 
-    private func setupButton() {
-        view.addSubview(getButton)
-        NSLayoutConstraint.activate([
-            getButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            getButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            getButton.widthAnchor.constraint(equalToConstant: 80),
-            getButton.heightAnchor.constraint(equalToConstant: 80),
-        ])
-        getButton.addAction(UIAction { [weak self] _ in
-            self?.viewModel.didTapGetButton()
-        }, for: .touchUpInside)
+extension ViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+        guard let query = searchBar.text, !query.isEmpty else { return }
+        viewModel.didSubmitSearch(query: query)
     }
 }
 
