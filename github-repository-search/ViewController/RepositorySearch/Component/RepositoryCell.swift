@@ -117,6 +117,16 @@ final class RepositoryCell: UICollectionViewCell {
         return stackView
     }()
 
+    /// スター数と言語を横に並べる行。
+    private lazy var bottomRowStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [starCountLabel, languageStackView])
+        stackView.axis = .horizontal
+        stackView.spacing = 16
+        stackView.alignment = .center
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemGray6
