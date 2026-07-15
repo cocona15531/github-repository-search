@@ -14,7 +14,10 @@ enum RepositoryTranslator {
             id: response.id,
             name: response.name,
             description: response.description,
-            stargazersCount: response.stargazersCount
+            stargazersCount: response.stargazersCount,
+            language: response.language,
+            ownerLogin: response.owner.login,
+            ownerAvatarURLString: response.owner.avatarURLString
         )
     }
 }
