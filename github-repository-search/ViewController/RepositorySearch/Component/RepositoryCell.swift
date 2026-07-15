@@ -233,11 +233,11 @@ final class RepositoryCell: UICollectionViewCell {
             bottomRow.topAnchor.constraint(equalTo: ownerRow.bottomAnchor, constant: 8),
             bottomRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             bottomRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            bottomRow.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
             languageDotView.heightAnchor.constraint(equalToConstant: 8),
 
+            separatorView.topAnchor.constraint(equalTo: bottomRow.bottomAnchor, constant: 16),
             separatorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             separatorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             separatorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
