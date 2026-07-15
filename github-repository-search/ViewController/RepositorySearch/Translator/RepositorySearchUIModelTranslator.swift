@@ -14,7 +14,10 @@ enum RepositorySearchUIModelTranslator {
             id: repository.id,
             name: repository.name,
             description: repository.description ?? "説明はありません",
-            starCountText: "★ \(repository.stargazersCount)"
+            starCountText: "★ \(repository.stargazersCount)",
+            ownerLogin: repository.ownerLogin,
+            ownerAvatarURL: URL(string: repository.ownerAvatarURLString),
+            languageText: repository.language
         )
     }
 }
