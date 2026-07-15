@@ -10,38 +10,38 @@ import Foundation
 
 @MainActor
 final class RepositorySearchViewModel {
-    /// GETボタンの状態。ここでは色などの見た目は持たず、状態そのものだけを表す。
-    enum ButtonState {
-        case off
-        case on
-    }
-
-    /// ViewからViewModelへのイベント通知口。
-    ///
-    /// PassthroughSubjectは値を保持せず、送られた瞬間だけ流す。
-    /// privateにして外部から購読できないようにし、入口はdidTapGetButton()に限定する。
-    private let getButtonTapped = PassthroughSubject<Void, Never>()
-
-    /// ボタンの状態。View側はこれを購読して背景色を更新する。
-    ///
-    /// @Publishedを付けると「$buttonState」という変化通知用のPublisherが自動で作られ、
-    /// 値が変わるたびに$buttonState経由で流す。購読開始時に現在値も即座に流れる。
-    /// private(set)で、状態を変えられるのはViewModel内部だけに限定する。
-    @Published private(set) var buttonState: ButtonState = .off
+    /// View からの検索文字列の送信口。
+    private let searchQuerySubmitted = PassthroughSubject<String, Never>()
 
     private var cancellables = Set<AnyCancellable>()
 
-    init() {
-        getButtonTapped
-            .sink { [weak self] in
+    private let repository: any RepositorySearchRepositoryProtocol
+
+    /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
+    @Published private(set) var repositories: [RepositoryRowUIModel] = []
+
+    init(repository: any RepositorySearchRepositoryProtocol = RepositorySearchRepository()) {
+        self.repository = repository
+
+        searchQuerySubmitted
+            .sink { [weak self] query in
                 guard let self else { return }
-                self.buttonState = (self.buttonState == .off) ? .on : .off
+                Task { await self.search(query: query) }
             }
             .store(in: &cancellables)
     }
 
-    /// GETボタンがタップされたことをこのViewModelに伝える。
-    func didTapGetButton() {
-        getButtonTapped.send()
+    /// 検索が実行されたことをこの ViewModel に伝える。
+    func didSubmitSearch(query: String) {
+        searchQuerySubmitted.send(query)
+    }
+
+    private func search(query: String) async {
+        do {
+            let fetchedRepositories = try await repository.searchRepositories(query: query)
+            repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
+        } catch {
+            print(error.localizedDescription)
+        }
     }
 }
