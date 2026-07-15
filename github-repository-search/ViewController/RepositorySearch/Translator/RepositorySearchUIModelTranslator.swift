@@ -14,10 +14,16 @@ enum RepositorySearchUIModelTranslator {
             id: repository.id,
             name: repository.name,
             description: repository.description ?? "説明はありません",
-            starCountText: "★ \(repository.stargazersCount)",
+            starCountText: "★ \(formattedStarCount(repository.stargazersCount))",
             ownerLogin: repository.ownerLogin,
             ownerAvatarURL: URL(string: repository.ownerAvatarURLString),
             languageText: repository.language
         )
+    }
+
+    /// スター数を、1万以上なら「X.X万」の形式に整形する。1万未満はそのままの数字にする。
+    private static func formattedStarCount(_ count: Int) -> String {
+        guard count >= 10_000 else { return "\(count)" }
+        return String(format: "%.1f万", Double(count) / 10_000)
     }
 }
