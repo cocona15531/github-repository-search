@@ -9,10 +9,11 @@ import UIKit
 
 /// 一覧の1件分のリポジトリ（名前・description・スター数）を表示するセル。
 final class RepositoryCell: UICollectionViewCell {
-    
+
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 16)
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
@@ -20,12 +21,14 @@ final class RepositoryCell: UICollectionViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14)
         label.textColor = .secondaryLabel
+        label.numberOfLines = 2
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
     private let starCountLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 14)
+        label.font = .systemFont(ofSize: 13)
         label.textColor = .systemYellow
         return label
     }()
