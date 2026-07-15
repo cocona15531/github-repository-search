@@ -60,10 +60,6 @@ final class RepositoryCell: UICollectionViewCell {
         imageView.layer.cornerRadius = 10
         imageView.backgroundColor = .systemGray4
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            imageView.widthAnchor.constraint(equalToConstant: 20),
-            imageView.heightAnchor.constraint(equalToConstant: 20),
-        ])
         return imageView
     }()
 
@@ -181,20 +177,56 @@ final class RepositoryCell: UICollectionViewCell {
     }
 
     private func setupViews() {
-        let stackView = UIStackView(arrangedSubviews: [nameLabel, descriptionLabel, starCountLabel])
-        stackView.axis = .vertical
-        stackView.spacing = 4
-        stackView.translatesAutoresizingMaskIntoConstraints = false
+        // ownerPillView/bottomRowStackViewを親スタックのarrangedSubviewsに直接入れると
+        // .fillアライメントで幅いっぱいに引き伸ばされてしまうため、
+        // 幅いっぱいの透明な行の中に、内容に応じた幅のまま左寄せする形にする。
+        let ownerRow = UIView()
+        ownerRow.translatesAutoresizingMaskIntoConstraints = false
+        ownerRow.addSubview(ownerPillView)
 
-        contentView.addSubview(stackView)
+        let bottomRow = UIView()
+        bottomRow.translatesAutoresizingMaskIntoConstraints = false
+        bottomRow.addSubview(bottomRowStackView)
+
+        contentView.addSubview(nameLabel)
+        contentView.addSubview(descriptionLabel)
+        contentView.addSubview(ownerRow)
+        contentView.addSubview(bottomRow)
+
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            ownerPillView.topAnchor.constraint(equalTo: ownerRow.topAnchor),
+            ownerPillView.bottomAnchor.constraint(equalTo: ownerRow.bottomAnchor),
+            ownerPillView.leadingAnchor.constraint(equalTo: ownerRow.leadingAnchor),
+            ownerPillView.trailingAnchor.constraint(lessThanOrEqualTo: ownerRow.trailingAnchor),
+
+            bottomRowStackView.topAnchor.constraint(equalTo: bottomRow.topAnchor),
+            bottomRowStackView.bottomAnchor.constraint(equalTo: bottomRow.bottomAnchor),
+            bottomRowStackView.leadingAnchor.constraint(equalTo: bottomRow.leadingAnchor),
+            bottomRowStackView.trailingAnchor.constraint(lessThanOrEqualTo: bottomRow.trailingAnchor),
+
+            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            descriptionLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
+            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+
+            avatarImageView.widthAnchor.constraint(equalToConstant: 20),
+            avatarImageView.heightAnchor.constraint(equalToConstant: 20),
+
+            ownerRow.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 8),
+            ownerRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            ownerRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            ownerRow.heightAnchor.constraint(equalToConstant: 28),
+
+            bottomRow.topAnchor.constraint(equalTo: ownerRow.bottomAnchor, constant: 8),
+            bottomRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            bottomRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            bottomRow.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
-            languageDotView.heightAnchor.constraint(equalToConstant: 8),
+            languageDotView.heightAnchor.constraint(equalToConstant: 8)
         ])
     }
 }
