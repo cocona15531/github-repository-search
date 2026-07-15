@@ -95,6 +95,28 @@ final class RepositoryCell: UICollectionViewCell {
         return label
     }()
 
+    private let languageDotView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = 4
+        return view
+    }()
+
+    private let languageLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13)
+        label.textColor = .secondaryLabel
+        return label
+    }()
+
+    private lazy var languageStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [languageDotView, languageLabel])
+        stackView.axis = .horizontal
+        stackView.spacing = 4
+        stackView.alignment = .center
+        return stackView
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemGray6
@@ -120,7 +142,10 @@ final class RepositoryCell: UICollectionViewCell {
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+
+            languageDotView.widthAnchor.constraint(equalToConstant: 8),
+            languageDotView.heightAnchor.constraint(equalToConstant: 8),
         ])
     }
 }
