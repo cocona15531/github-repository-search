@@ -85,6 +85,14 @@ final class RepositoryCell: UICollectionViewCell {
         return stackView
     }()
 
+    /// セル同士の境界を示す罫線。
+    private let separatorView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .separator
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     private let starCountLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 13)
@@ -193,6 +201,7 @@ final class RepositoryCell: UICollectionViewCell {
         contentView.addSubview(descriptionLabel)
         contentView.addSubview(ownerRow)
         contentView.addSubview(bottomRow)
+        contentView.addSubview(separatorView)
 
         NSLayoutConstraint.activate([
             ownerPillView.topAnchor.constraint(equalTo: ownerRow.topAnchor),
@@ -227,7 +236,12 @@ final class RepositoryCell: UICollectionViewCell {
             bottomRow.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
-            languageDotView.heightAnchor.constraint(equalToConstant: 8)
+            languageDotView.heightAnchor.constraint(equalToConstant: 8),
+
+            separatorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            separatorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separatorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separatorView.heightAnchor.constraint(equalToConstant: 0.5)
         ])
     }
 }
