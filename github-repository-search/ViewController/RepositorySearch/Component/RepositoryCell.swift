@@ -214,7 +214,7 @@ final class RepositoryCell: UICollectionViewCell {
             bottomRowStackView.leadingAnchor.constraint(equalTo: bottomRow.leadingAnchor),
             bottomRowStackView.trailingAnchor.constraint(lessThanOrEqualTo: bottomRow.trailingAnchor),
 
-            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
+            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
             nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
 
@@ -233,7 +233,7 @@ final class RepositoryCell: UICollectionViewCell {
             bottomRow.topAnchor.constraint(equalTo: ownerRow.bottomAnchor, constant: 8),
             bottomRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             bottomRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            bottomRow.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12),
+            bottomRow.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
             languageDotView.heightAnchor.constraint(equalToConstant: 8),
