@@ -43,6 +43,7 @@ final class RepositorySearchViewModel {
     private func search(query: String) async {
         do {
             let fetchedRepositories = try await repository.searchRepositories(query: query)
+            print(fetchedRepositories)
             repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
         } catch {
             print(error.localizedDescription)
