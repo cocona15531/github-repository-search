@@ -39,6 +39,7 @@ final class RepositoryCell: UICollectionViewCell {
     private let ownerNameLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
@@ -69,6 +70,7 @@ final class RepositoryCell: UICollectionViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 13)
         label.textColor = .systemYellow
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
@@ -83,6 +85,7 @@ final class RepositoryCell: UICollectionViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 13)
         label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
