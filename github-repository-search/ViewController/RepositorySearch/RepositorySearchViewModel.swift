@@ -36,6 +36,10 @@ final class RepositorySearchViewModel {
         searchQuerySubmitted.send(query)
     }
 
+    func didClearSearch() {
+        repositories = []
+    }
+
     private func search(query: String) async {
         do {
             let fetchedRepositories = try await repository.searchRepositories(query: query)

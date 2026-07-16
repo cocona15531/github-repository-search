@@ -138,5 +138,10 @@ extension ViewController: UISearchBarDelegate {
         guard let query = searchBar.text, !query.isEmpty else { return }
         viewModel.didSubmitSearch(query: query)
     }
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        guard searchText.isEmpty else { return }
+        viewModel.didClearSearch()
+    }
 }
 
