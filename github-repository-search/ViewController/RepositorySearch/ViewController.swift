@@ -31,6 +31,33 @@ final class ViewController: UIViewController {
         return view
     }()
 
+    private let emptyStateTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "検索してみましょう"
+        label.font = .boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let emptyStateSubtitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "GitHub内のリポジトリが検索できます"
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private lazy var emptyStateStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [emptyStateTitleLabel, emptyStateSubtitleLabel])
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+
     private lazy var dataSource = makeDataSource()
 
     override func viewDidLoad() {
@@ -43,6 +70,7 @@ final class ViewController: UIViewController {
     private func setupViews() {
         view.addSubview(searchBar)
         view.addSubview(collectionView)
+        view.addSubview(emptyStateStackView)
 
         NSLayoutConstraint.activate([
             searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -53,6 +81,9 @@ final class ViewController: UIViewController {
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            emptyStateStackView.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
+            emptyStateStackView.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor)
         ])
     }
 
@@ -95,6 +126,7 @@ final class ViewController: UIViewController {
                 snapshot.appendSections([.main])
                 snapshot.appendItems(repositories, toSection: .main)
                 self.dataSource.apply(snapshot, animatingDifferences: true)
+                self.emptyStateStackView.isHidden = !repositories.isEmpty
             }
             .store(in: &cancellables)
     }
