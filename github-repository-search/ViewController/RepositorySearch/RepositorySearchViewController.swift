@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  RepositorySearchViewController.swift
 //  github-repository-search
 //
 //  Created by Issei Ueda on 2026/06/05.
@@ -8,7 +8,7 @@
 import Combine
 import UIKit
 
-final class ViewController: UIViewController {
+final class RepositorySearchViewController: UIViewController {
     /// プロジェクト全体がデフォルトで MainActor 分離される設定になっており、Hashable は MainActor 限定として扱われてしまう。
     /// NSDiffableDataSourceSnapshot は Sendableな型を要求するため、nonisolated を付けて明示的に分離を外さないとビルドエラーになる。
     private nonisolated enum Section: Hashable {
@@ -138,7 +138,7 @@ final class ViewController: UIViewController {
     }
 }
 
-extension ViewController: UISearchBarDelegate {
+extension RepositorySearchViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
         guard let query = searchBar.text, !query.isEmpty else { return }
