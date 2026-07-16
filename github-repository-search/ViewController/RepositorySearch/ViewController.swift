@@ -23,13 +23,14 @@ final class ViewController: UIViewController {
         searchBar.placeholder = "リポジトリを検索"
         // UISearchBar の背景を透明にするために backgroundImage を空の UIImage に設定する。
         searchBar.backgroundImage = UIImage()
-        searchBar.backgroundColor = .systemBackground
+        searchBar.backgroundColor = .systemGroupedBackground
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         return searchBar
     }()
 
     private lazy var collectionView: UICollectionView = {
         let view = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
+        view.backgroundColor = .systemGroupedBackground
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -65,7 +66,7 @@ final class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
         searchBar.delegate = self
         setupViews()
         bindViewModel()
