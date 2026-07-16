@@ -10,6 +10,20 @@ import UIKit
 
 /// 一覧の1件分のリポジトリ（名前・description・スター数）を表示するセル。
 final class RepositoryCell: UICollectionViewCell {
+    // MARK: - View構造
+    // contentView(W: superView.frame.W, H: 内容に応じて可変（AutoLayoutの自己サイズ計算）)
+    //   ┣ nameLabel(W: contentView.frame.W - 32, H: textのsizeに合わせる)
+    //   ┣ descriptionLabel(W: contentView.frame.W - 32, H: 最大2行分のtextのsizeに合わせる)
+    //   ┣ ownerPillView(UIStackView) (W: 内容に応じた幅, H: 28)
+    //   ┃     ┣ avatarImageView(W: 20, H: 20)
+    //   ┃     ┗ ownerNameLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //   ┣ bottomRowStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+    //   ┃     ┣ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //   ┃     ┗ languageStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+    //   ┃           ┣ languageDotView(W: 8, H: 8)
+    //   ┃           ┗ languageLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //   ┗ separatorView(W: contentView.frame.W, H: 0.5)
+
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 16)
