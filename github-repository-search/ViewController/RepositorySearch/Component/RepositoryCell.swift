@@ -214,25 +214,25 @@ final class RepositoryCell: UICollectionViewCell {
             bottomRowStackView.leadingAnchor.constraint(equalTo: bottomRow.leadingAnchor),
             bottomRowStackView.trailingAnchor.constraint(lessThanOrEqualTo: bottomRow.trailingAnchor),
 
-            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
-            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
             descriptionLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
-            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
             avatarImageView.widthAnchor.constraint(equalToConstant: 20),
             avatarImageView.heightAnchor.constraint(equalToConstant: 20),
 
             ownerRow.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 8),
-            ownerRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            ownerRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            ownerRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            ownerRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             ownerRow.heightAnchor.constraint(equalToConstant: 28),
 
             bottomRow.topAnchor.constraint(equalTo: ownerRow.bottomAnchor, constant: 8),
-            bottomRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            bottomRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            bottomRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            bottomRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
             languageDotView.heightAnchor.constraint(equalToConstant: 8),
