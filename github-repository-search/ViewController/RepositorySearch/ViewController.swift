@@ -21,6 +21,9 @@ final class ViewController: UIViewController {
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
         searchBar.placeholder = "リポジトリを検索"
+        // UISearchBar の背景を透明にするために backgroundImage を空の UIImage に設定する。
+        searchBar.backgroundImage = UIImage()
+        searchBar.backgroundColor = .systemBackground
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         return searchBar
     }()
