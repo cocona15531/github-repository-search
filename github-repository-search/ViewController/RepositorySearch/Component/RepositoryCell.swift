@@ -169,34 +169,13 @@ final class RepositoryCell: UICollectionViewCell {
     }
 
     private func setupViews() {
-        // ownerPillView/bottomRowStackViewを親スタックのarrangedSubviewsに直接入れると
-        // .fillアライメントで幅いっぱいに引き伸ばされてしまうため、
-        // 幅いっぱいの透明な行の中に、内容に応じた幅のまま左寄せする形にする。
-        let ownerRow = UIView()
-        ownerRow.translatesAutoresizingMaskIntoConstraints = false
-        ownerRow.addSubview(ownerPillView)
-
-        let bottomRow = UIView()
-        bottomRow.translatesAutoresizingMaskIntoConstraints = false
-        bottomRow.addSubview(bottomRowStackView)
-
         contentView.addSubview(nameLabel)
         contentView.addSubview(descriptionLabel)
-        contentView.addSubview(ownerRow)
-        contentView.addSubview(bottomRow)
+        contentView.addSubview(ownerPillView)
+        contentView.addSubview(bottomRowStackView)
         contentView.addSubview(separatorView)
 
         NSLayoutConstraint.activate([
-            ownerPillView.topAnchor.constraint(equalTo: ownerRow.topAnchor),
-            ownerPillView.bottomAnchor.constraint(equalTo: ownerRow.bottomAnchor),
-            ownerPillView.leadingAnchor.constraint(equalTo: ownerRow.leadingAnchor),
-            ownerPillView.trailingAnchor.constraint(lessThanOrEqualTo: ownerRow.trailingAnchor),
-
-            bottomRowStackView.topAnchor.constraint(equalTo: bottomRow.topAnchor),
-            bottomRowStackView.bottomAnchor.constraint(equalTo: bottomRow.bottomAnchor),
-            bottomRowStackView.leadingAnchor.constraint(equalTo: bottomRow.leadingAnchor),
-            bottomRowStackView.trailingAnchor.constraint(lessThanOrEqualTo: bottomRow.trailingAnchor),
-
             nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
@@ -208,19 +187,19 @@ final class RepositoryCell: UICollectionViewCell {
             avatarImageView.widthAnchor.constraint(equalToConstant: 20),
             avatarImageView.heightAnchor.constraint(equalToConstant: 20),
 
-            ownerRow.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 8),
-            ownerRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            ownerRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            ownerRow.heightAnchor.constraint(equalToConstant: 28),
+            ownerPillView.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 8),
+            ownerPillView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            ownerPillView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
+            ownerPillView.heightAnchor.constraint(equalToConstant: 28),
 
-            bottomRow.topAnchor.constraint(equalTo: ownerRow.bottomAnchor, constant: 8),
-            bottomRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            bottomRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            bottomRowStackView.topAnchor.constraint(equalTo: ownerPillView.bottomAnchor, constant: 8),
+            bottomRowStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            bottomRowStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
             languageDotView.heightAnchor.constraint(equalToConstant: 8),
 
-            separatorView.topAnchor.constraint(equalTo: bottomRow.bottomAnchor, constant: 16),
+            separatorView.topAnchor.constraint(equalTo: bottomRowStackView.bottomAnchor, constant: 16),
             separatorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             separatorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             separatorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
