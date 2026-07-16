@@ -65,6 +65,7 @@ final class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemBackground
         searchBar.delegate = self
         setupViews()
         bindViewModel()
