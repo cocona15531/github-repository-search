@@ -102,7 +102,6 @@ final class ViewController: UIViewController {
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-        section.interGroupSpacing = 16
 
         return UICollectionViewCompositionalLayout(section: section)
     }
