@@ -108,8 +108,10 @@ final class ViewController: UIViewController {
 
     /// RepositoryCell を RepositoryRowUIModel で設定する DiffableDataSource を組み立てる。
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Section, RepositoryRowUIModel> {
-        let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { cell, _, repository in
-            cell.configure(with: repository)
+        let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { [weak self] cell, indexPath, repository in
+            // 先頭・末尾のセルにだけ角丸を適用するため、indexPath から位置を判定して RepositoryCell に渡す。
+            let itemCount = self?.collectionView.numberOfItems(inSection: indexPath.section) ?? 0
+            cell.configure(with: repository, isFirst: indexPath.item == 0, isLast: indexPath.item == itemCount - 1)
         }
 
         return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, repository in

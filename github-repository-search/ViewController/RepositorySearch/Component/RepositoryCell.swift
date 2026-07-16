@@ -150,7 +150,7 @@ final class RepositoryCell: UICollectionViewCell {
         avatarImageView.image = nil
     }
 
-    func configure(with repository: RepositoryRowUIModel) {
+    func configure(with repository: RepositoryRowUIModel, isFirst: Bool, isLast: Bool) {
         nameLabel.text = repository.name
         descriptionLabel.text = repository.description
         ownerNameLabel.text = repository.ownerLogin
@@ -165,6 +165,14 @@ final class RepositoryCell: UICollectionViewCell {
         }
 
         loadAvatarImage(from: repository.ownerAvatarURL)
+
+        // 先頭・末尾のセルだけ角丸にする
+        var maskedCorners: CACornerMask = []
+        if isFirst { maskedCorners.formUnion([.layerMinXMinYCorner, .layerMaxXMinYCorner]) }
+        if isLast { maskedCorners.formUnion([.layerMinXMaxYCorner, .layerMaxXMaxYCorner]) }
+        layer.cornerRadius = 12
+        layer.maskedCorners = maskedCorners
+        clipsToBounds = true
     }
 
     /// avatars.githubusercontent.com はGitHub APIとは別ホストの画像バイナリなので、
@@ -252,7 +260,7 @@ struct RepositoryCellPreview: PreviewProvider {
 
         func makeUIView(context: Context) -> some UIView {
             let cell = RepositoryCell(frame: CGRect(x: 0, y: 0, width: 350, height: 0))
-            cell.configure(with: repository)
+            cell.configure(with: repository, isFirst: true, isLast: true)
             return cell.contentView
         }
 
