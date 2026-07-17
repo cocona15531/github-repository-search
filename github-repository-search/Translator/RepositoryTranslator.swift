@@ -16,8 +16,10 @@ enum RepositoryTranslator {
             description: response.description,
             stargazersCount: response.stargazersCount,
             language: response.language,
-            ownerLogin: response.owner.login,
-            ownerAvatarURLString: response.owner.avatarURLString
+            owner: GitHubRepository.Owner(
+                login: response.owner.login,
+                avatarURLString: response.owner.avatarURLString
+            )
         )
     }
 }

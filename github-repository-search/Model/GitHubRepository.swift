@@ -19,8 +19,13 @@ struct GitHubRepository: Sendable, Equatable {
     let stargazersCount: Int
     /// GitHub のリポジトリの主要言語。設定されていない場合は nil になる。
     let language: String?
-    /// GitHub のリポジトリのオーナーのユーザー名。
-    let ownerLogin: String
-    /// GitHub のリポジトリのオーナーのアイコン画像のURL文字列。
-    let ownerAvatarURLString: String
+    /// GitHub のリポジトリのオーナー情報。
+    let owner: Owner
+
+    struct Owner: Sendable, Equatable {
+        /// オーナーのユーザー名。
+        let login: String
+        /// オーナーのアイコン画像のURL文字列。
+        let avatarURLString: String
+    }
 }
