@@ -5,6 +5,7 @@
 //  Created by Issei Ueda on 2026/07/14.
 //
 
+import SDWebImage
 import SwiftUI
 import UIKit
 
@@ -112,10 +113,6 @@ final class RepositoryCell: UICollectionViewCell {
         return stackView
     }()
 
-    /// セルの再利用時に、切り替わり前の画像が一瞬表示されたり、
-    /// 別の行の画像取得タスクが後から上書きしたりしないようキャンセルする。
-    private var imageLoadTask: Task<Void, Never>?
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemBackground
@@ -123,12 +120,6 @@ final class RepositoryCell: UICollectionViewCell {
     }
 
     required init?(coder: NSCoder) { fatalError() }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        imageLoadTask?.cancel()
-        avatarImageView.image = nil
-    }
 
     func configure(with repository: RepositoryRowUIModel) {
         nameLabel.text = repository.name
@@ -144,25 +135,7 @@ final class RepositoryCell: UICollectionViewCell {
             languageStackView.isHidden = true
         }
 
-        loadAvatarImage(from: repository.ownerAvatarURL)
-    }
-
-    /// avatars.githubusercontent.com はGitHub APIとは別ホストの画像バイナリなので、
-    /// APIClient（GitHub APIのJSONエンドポイント専用）は使わず、URLSessionで直接取得する。
-    private func loadAvatarImage(from url: URL?) {
-        imageLoadTask?.cancel()
-        avatarImageView.image = nil
-        guard let url else { return }
-
-        imageLoadTask = Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                guard !Task.isCancelled, let image = UIImage(data: data) else { return }
-                avatarImageView.image = image
-            } catch {
-                print(error.localizedDescription)
-            }
-        }
+        avatarImageView.sd_setImage(with: repository.ownerAvatarURL)
     }
 
     private func setupViews() {
