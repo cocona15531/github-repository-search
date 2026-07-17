@@ -15,7 +15,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = RepositorySearchViewController()   // 起動時に表示する画面
+        // 起動時に表示する画面。検索バーをナビゲーションバーに埋め込むため UINavigationController に包む。
+        window.rootViewController = UINavigationController(rootViewController: RepositorySearchViewController())
         self.window = window
         window.makeKeyAndVisible()
     }

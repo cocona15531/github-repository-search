@@ -18,14 +18,10 @@ final class RepositorySearchViewController: UIViewController {
     private let viewModel = RepositorySearchViewModel()
     private var cancellables = Set<AnyCancellable>()
 
-    private let searchBar: UISearchBar = {
-        let searchBar = UISearchBar()
-        searchBar.placeholder = "リポジトリを検索"
-        // UISearchBar の背景を透明にするために backgroundImage を空の UIImage に設定する。
-        searchBar.backgroundImage = UIImage()
-        searchBar.backgroundColor = .systemGroupedBackground
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        return searchBar
+    private let searchController: UISearchController = {
+        let searchController = UISearchController(searchResultsController: nil)
+        searchController.searchBar.placeholder = "リポジトリを検索"
+        return searchController
     }()
 
     private lazy var collectionView: UICollectionView = {
@@ -67,22 +63,18 @@ final class RepositorySearchViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemGroupedBackground
-        searchBar.delegate = self
+        navigationItem.searchController = searchController
+        searchController.searchBar.delegate = self
         setupViews()
         bindViewModel()
     }
 
     private func setupViews() {
-        view.addSubview(searchBar)
         view.addSubview(collectionView)
         view.addSubview(emptyStateStackView)
 
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
