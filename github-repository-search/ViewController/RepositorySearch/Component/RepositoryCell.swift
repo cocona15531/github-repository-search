@@ -17,12 +17,11 @@ final class RepositoryCell: UICollectionViewCell {
     //   ┣ ownerPillView(UIStackView) (W: 内容に応じた幅, H: 28)
     //   ┃     ┣ avatarImageView(W: 20, H: 20)
     //   ┃     ┗ ownerNameLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
-    //   ┣ bottomRowStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
-    //   ┃     ┣ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
-    //   ┃     ┗ languageStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
-    //   ┃           ┣ languageDotView(W: 8, H: 8)
-    //   ┃           ┗ languageLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
-    //   ┗ separatorView(W: contentView.frame.W, H: 0.5)
+    //   ┗ bottomRowStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+    //         ┣ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //         ┗ languageStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+    //               ┣ languageDotView(W: 8, H: 8)
+    //               ┗ languageLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
 
     private let nameLabel: UILabel = {
         let label = UILabel()
@@ -70,14 +69,6 @@ final class RepositoryCell: UICollectionViewCell {
         stackView.clipsToBounds = true
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
-    }()
-
-    /// セル同士の境界を示す罫線。
-    private let separatorView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .separator
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
     }()
 
     private let starCountLabel: UILabel = {
@@ -139,7 +130,7 @@ final class RepositoryCell: UICollectionViewCell {
         avatarImageView.image = nil
     }
 
-    func configure(with repository: RepositoryRowUIModel, isFirst: Bool, isLast: Bool) {
+    func configure(with repository: RepositoryRowUIModel) {
         nameLabel.text = repository.name
         descriptionLabel.text = repository.description
         ownerNameLabel.text = repository.ownerLogin
@@ -154,14 +145,6 @@ final class RepositoryCell: UICollectionViewCell {
         }
 
         loadAvatarImage(from: repository.ownerAvatarURL)
-
-        // 先頭・末尾のセルだけ角丸にする
-        var maskedCorners: CACornerMask = []
-        if isFirst { maskedCorners.formUnion([.layerMinXMinYCorner, .layerMaxXMinYCorner]) }
-        if isLast { maskedCorners.formUnion([.layerMinXMaxYCorner, .layerMaxXMaxYCorner]) }
-        layer.cornerRadius = 12
-        layer.maskedCorners = maskedCorners
-        clipsToBounds = true
     }
 
     /// avatars.githubusercontent.com はGitHub APIとは別ホストの画像バイナリなので、
@@ -187,7 +170,6 @@ final class RepositoryCell: UICollectionViewCell {
         contentView.addSubview(descriptionLabel)
         contentView.addSubview(ownerPillView)
         contentView.addSubview(bottomRowStackView)
-        contentView.addSubview(separatorView)
 
         NSLayoutConstraint.activate([
             nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
@@ -209,15 +191,10 @@ final class RepositoryCell: UICollectionViewCell {
             bottomRowStackView.topAnchor.constraint(equalTo: ownerPillView.bottomAnchor, constant: 8),
             bottomRowStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             bottomRowStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
+            bottomRowStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
-            languageDotView.heightAnchor.constraint(equalToConstant: 8),
-
-            separatorView.topAnchor.constraint(equalTo: bottomRowStackView.bottomAnchor, constant: 16),
-            separatorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            separatorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            separatorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            separatorView.heightAnchor.constraint(equalToConstant: 0.5)
+            languageDotView.heightAnchor.constraint(equalToConstant: 8)
         ])
     }
 }
@@ -228,7 +205,7 @@ struct RepositoryCellPreview: PreviewProvider {
 
         func makeUIView(context: Context) -> some UIView {
             let cell = RepositoryCell(frame: CGRect(x: 0, y: 0, width: 350, height: 0))
-            cell.configure(with: repository, isFirst: true, isLast: true)
+            cell.configure(with: repository)
             return cell.contentView
         }
 

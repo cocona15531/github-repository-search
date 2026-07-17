@@ -84,26 +84,16 @@ final class RepositorySearchViewController: UIViewController {
         ])
     }
 
-    /// 一覧の各行を縦に並べるだけのシンプルな CompositionalLayout を組み立てる。
+    /// 先頭・末尾の角丸やセルの区切り線が標準で提供される insetGrouped スタイルのリストレイアウトを組み立てる。
     private func makeLayout() -> UICollectionViewCompositionalLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(80))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(80))
-        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
-
-        let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
-
-        return UICollectionViewCompositionalLayout(section: section)
+        let configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+        return UICollectionViewCompositionalLayout.list(using: configuration)
     }
 
     /// RepositoryCell を RepositoryRowUIModel で設定する DiffableDataSource を組み立てる。
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Section, RepositoryRowUIModel> {
-        let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { [weak self] cell, indexPath, repository in
-            // 先頭・末尾のセルにだけ角丸を適用するため、indexPath から位置を判定して RepositoryCell に渡す。
-            let itemCount = self?.collectionView.numberOfItems(inSection: indexPath.section) ?? 0
-            cell.configure(with: repository, isFirst: indexPath.item == 0, isLast: indexPath.item == itemCount - 1)
+        let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { cell, _, repository in
+            cell.configure(with: repository)
         }
 
         return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, repository in
