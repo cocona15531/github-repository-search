@@ -246,7 +246,7 @@ struct RepositoryCellPreview: PreviewProvider {
                 ownerAvatarURL: URL(string: "https://avatars.githubusercontent.com/u/10639145?v=4"),
                 languageText: "C++"
             ))
-            .previewLayout(.fixed(width: 350, height: 148))
+            .previewLayout(.fixed(width: 350, height: 150))
             .previewDisplayName("言語・アバターあり")
 
             Wrapper(repository: RepositoryRowUIModel(
@@ -258,8 +258,32 @@ struct RepositoryCellPreview: PreviewProvider {
                 ownerAvatarURL: nil,
                 languageText: nil
             ))
-            .previewLayout(.fixed(width: 350, height: 148))
+            .previewLayout(.fixed(width: 350, height: 150))
             .previewDisplayName("言語・アバターなし")
+
+            Wrapper(repository: RepositoryRowUIModel(
+                id: 3,
+                name: "long-description-repo",
+                description: "説明文がとても長く、2行を超えるとどのように省略されるかを確認するためのプレビュー用テキストです。3行目以降は表示されず末尾が...になることを期待しています。",
+                starCountText: "1.2万",
+                ownerLogin: "example",
+                ownerAvatarURL: URL(string: "https://avatars.githubusercontent.com/u/10639145?v=4"),
+                languageText: "Swift"
+            ))
+            .previewLayout(.fixed(width: 350, height: 150))
+            .previewDisplayName("descriptionが長い場合")
+
+            Wrapper(repository: RepositoryRowUIModel(
+                id: 4,
+                name: "long-owner-name-repo",
+                description: "オーナー名が長い場合にピルの表示が崩れないかを確認するためのプレビュー",
+                starCountText: "42",
+                ownerLogin: "a-very-long-organization-name-that-does-not-fit-in-one-line",
+                ownerAvatarURL: URL(string: "https://avatars.githubusercontent.com/u/10639145?v=4"),
+                languageText: "Python"
+            ))
+            .previewLayout(.fixed(width: 350, height: 150))
+            .previewDisplayName("オーナー名が長い場合")
         }
     }
 }
