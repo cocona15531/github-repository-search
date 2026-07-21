@@ -65,6 +65,11 @@ final class RepositorySearchViewController: UIViewController {
         view.backgroundColor = .systemGroupedBackground
         navigationItem.searchController = searchController
         searchController.searchBar.delegate = self
+        // iOS 26 では検索バーの配置がデフォルトで画面下部になるため、
+        // OS間で見た目が変わらないようナビゲーションバーを画面上部に固定する。
+        if #available(iOS 26.0, *) {
+            navigationItem.preferredSearchBarPlacement = .stacked
+        }
         setupViews()
         bindViewModel()
     }
