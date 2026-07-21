@@ -139,7 +139,7 @@ final class RepositoryCell: UICollectionViewCell {
         avatarImageView.image = nil
         avatarImageView.sd_setImage(with: repository.ownerAvatarURL, completed: { [weak self] _, error, _, _ in
             if error != nil {
-                self?.avatarImageView.image = Self.avatarPlaceholderImage
+                self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
             }
         })
     }
