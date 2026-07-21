@@ -113,6 +113,10 @@ final class RepositoryCell: UICollectionViewCell {
         return stackView
     }()
 
+    /// アバター画像の取得失敗時に表示するプレースホルダー。
+    private static let avatarPlaceholderImage = UIImage(systemName: "person.crop.circle.fill")?
+        .withTintColor(.white, renderingMode: .alwaysOriginal)
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemBackground
@@ -135,7 +139,7 @@ final class RepositoryCell: UICollectionViewCell {
             languageStackView.isHidden = true
         }
 
-        avatarImageView.sd_setImage(with: repository.ownerAvatarURL)
+        avatarImageView.sd_setImage(with: repository.ownerAvatarURL, placeholderImage: Self.avatarPlaceholderImage)
     }
 
     private func setupViews() {
@@ -234,6 +238,18 @@ struct RepositoryCellPreview: PreviewProvider {
             ))
             .previewLayout(.fixed(width: 350, height: 150))
             .previewDisplayName("オーナー名が長い場合")
+
+            Wrapper(repository: RepositoryRowUIModel(
+                id: 5,
+                name: "broken-avatar-repo",
+                description: "アバター画像の取得に失敗した場合にプレースホルダーが表示されることを確認するためのプレビュー",
+                starCountText: "3",
+                ownerLogin: "unreachable",
+                ownerAvatarURL: URL(string: "https://invalid.example.invalid/avatar.png"),
+                languageText: "Ruby"
+            ))
+            .previewLayout(.fixed(width: 350, height: 150))
+            .previewDisplayName("アバター画像の取得に失敗した場合")
         }
     }
 }
