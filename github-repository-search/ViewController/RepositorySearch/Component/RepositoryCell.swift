@@ -110,10 +110,6 @@ final class RepositoryCell: UICollectionViewCell {
         return stackView
     }()
 
-    /// アバター画像の取得失敗時に表示するプレースホルダー。
-    private static let avatarPlaceholderImage = UIImage(systemName: "person.crop.circle.fill")?
-        .withTintColor(.white, renderingMode: .alwaysOriginal)
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .systemBackground
