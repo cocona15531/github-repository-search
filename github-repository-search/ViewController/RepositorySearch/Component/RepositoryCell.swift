@@ -145,6 +145,11 @@ final class RepositoryCell: UICollectionViewCell {
         contentView.addSubview(ownerPillView)
         contentView.addSubview(bottomRowStackView)
 
+        // UICollectionLayoutListConfiguration によるセルの高さを推定する際、UIKitが入れる仮の高さと制約が衝突して警告が出るため、
+        // 最下部の bottom 制約だけ優先度を下げる（実際の高さ計算には影響しない）。
+        let bottomConstraint = bottomRowStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
+        bottomConstraint.priority = UILayoutPriority(999)
+
         NSLayoutConstraint.activate([
             nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -165,7 +170,7 @@ final class RepositoryCell: UICollectionViewCell {
             bottomRowStackView.topAnchor.constraint(equalTo: ownerPillView.bottomAnchor, constant: 8),
             bottomRowStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             bottomRowStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
-            bottomRowStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+            bottomConstraint,
 
             languageDotView.widthAnchor.constraint(equalToConstant: 8),
             languageDotView.heightAnchor.constraint(equalToConstant: 8)
