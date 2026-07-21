@@ -136,7 +136,12 @@ final class RepositoryCell: UICollectionViewCell {
             languageStackView.isHidden = true
         }
 
-        avatarImageView.sd_setImage(with: repository.ownerAvatarURL, placeholderImage: Self.avatarPlaceholderImage)
+        avatarImageView.image = nil
+        avatarImageView.sd_setImage(with: repository.ownerAvatarURL, completed: { [weak avatarImageView] _, error, _, _ in
+            if error != nil {
+                avatarImageView?.image = Self.avatarPlaceholderImage
+            }
+        })
     }
 
     private func setupViews() {
