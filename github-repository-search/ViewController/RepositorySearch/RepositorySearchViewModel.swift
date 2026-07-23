@@ -17,6 +17,8 @@ final class RepositorySearchViewModel {
 
     private let repository: any RepositorySearchRepositoryProtocol
 
+    private var fetchedRepositories: [GitHubRepository] = []
+
     /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
     @Published private(set) var repositories: [RepositoryRowUIModel] = []
 
@@ -37,12 +39,13 @@ final class RepositorySearchViewModel {
     }
 
     func didClearSearch() {
+        fetchedRepositories = []
         repositories = []
     }
 
     private func search(query: String) async {
         do {
-            let fetchedRepositories = try await repository.searchRepositories(query: query)
+            fetchedRepositories = try await repository.searchRepositories(query: query)
             repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
         } catch {
             print(error.localizedDescription)
