@@ -20,17 +20,41 @@ struct SearchResponse: ResponseType {
 
 /// GitHub のリポジトリ 1 件分の情報を表す構造体。
 struct RepositoryResponse: Decodable {
+    /// GitHub のリポジトリを一意に識別するID。
+    let id: Int
     /// GitHub のリポジトリ名。
     let name: String
     /// GitHub のリポジトリの説明。リポジトリに説明が設定されていない場合は nil になる。
     let description: String?
     /// GitHub のリポジトリのスター数。
     let stargazersCount: Int
+    /// GitHub のリポジトリの主要言語。設定されていない場合は nil になる。
+    let language: String?
+    /// GitHub のリポジトリのオーナー情報。
+    let owner: Owner
+
+    /// GitHub のリポジトリのオーナー（ユーザー or Organization）を表す構造体。
+    struct Owner: Decodable {
+        /// オーナーのユーザー名。
+        let login: String
+        /// オーナーのアイコン画像のURL文字列。
+        let avatarURLString: String
+
+        /// JSON のキーと構造体のプロパティ名が異なるのでマッピングを行う。
+        enum CodingKeys: String, CodingKey {
+            case login
+            /// avatarURLString は JSON では "avatar_url" というキーで表されるため、対応づけを行う。
+            case avatarURLString = "avatar_url"
+        }
+    }
 
     /// JSON のキーと構造体のプロパティ名が異なるのでマッピングを行う。
     enum CodingKeys: String, CodingKey {
+        case id
         case name
         case description
+        case language
+        case owner
         /// stargazersCount は JSON では "stargazers_count" というキーで表されるため、対応づけを行う。
         case stargazersCount = "stargazers_count"
     }

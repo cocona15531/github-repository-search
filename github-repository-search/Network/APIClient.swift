@@ -40,7 +40,16 @@ final class APIClient {
         }
 
         guard (200..<300).contains(httpResponse.statusCode) else {
-            throw .unacceptable(statusCode: httpResponse.statusCode)
+            switch httpResponse.statusCode {
+            case 403, 429:
+                throw .rateLimitExceeded
+            case 422:
+                throw .requestRejected
+            case 503:
+                throw .serviceUnavailable
+            default:
+                throw .unacceptable(statusCode: httpResponse.statusCode)
+            }
         }
 
         do {
