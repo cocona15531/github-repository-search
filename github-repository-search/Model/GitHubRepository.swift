@@ -21,6 +21,14 @@ struct GitHubRepository: Sendable, Equatable {
     let language: String?
     /// GitHub のリポジトリのオーナー情報。
     let owner: Owner
+    /// フォーク数。
+    let forksCount: Int
+    /// オープンな Issue 数。
+    let openIssuesCount: Int
+    /// 最後に push された日時（ISO8601 文字列）。存在しない場合は nil になる。
+    let pushedAtString: String?
+    /// リポジトリに設定されたトピック一覧。
+    let topics: [String]
 
     struct Owner: Sendable, Equatable {
         /// オーナーのユーザー名。
