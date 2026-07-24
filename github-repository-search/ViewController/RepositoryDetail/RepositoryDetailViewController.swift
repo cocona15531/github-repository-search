@@ -56,7 +56,7 @@ final class RepositoryDetailViewController: UIViewController {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 16
-        imageView.backgroundColor = .systemGray4
+        imageView.backgroundColor = .white
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -216,7 +216,7 @@ final class RepositoryDetailViewController: UIViewController {
                 self.avatarImageView.image = nil
                 self.avatarImageView.sd_setImage(with: uiModel.ownerAvatarURL, completed: { [weak self] _, error, _, _ in
                     if error != nil {
-                        self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                        self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal)
                     }
                 })
                 self.repositoryNameLabel.text = uiModel.repositoryName
