@@ -166,14 +166,11 @@ final class RepositoryDetailViewController: UIViewController {
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            // カードはスクロールする中身（contentLayoutGuide）に上下20で留める。
-            // 幅は可視領域（frameLayoutGuide）に左右20で留める。
             cardView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 20),
             cardView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 40),
             cardView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -40),
             cardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -20),
 
-            // 中身の下もカード下に留めることで、カードの高さが中身の高さに確定する。
             contentStackView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 100),
             contentStackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
             contentStackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
