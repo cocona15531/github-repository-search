@@ -36,7 +36,7 @@ struct RepositoryResponse: Decodable {
     let forksCount: Int
     /// オープンな Issue 数。
     let openIssuesCount: Int
-    /// 最後に更新された日時（ISO8601 文字列）。存在しない場合は nil になる。
+    /// 最後に更新された日時（ISO8601 文字列。例: "2026-07-24T08:57:00Z"）。存在しない場合は nil になる。
     let updatedAtString: String?
     /// リポジトリに設定されたトピック一覧。存在しない場合は nil になる。
     let topics: [String]?
