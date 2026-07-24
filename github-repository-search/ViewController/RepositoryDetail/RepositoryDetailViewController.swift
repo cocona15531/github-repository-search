@@ -217,14 +217,13 @@ final class RepositoryDetailViewController: UIViewController {
 
     /// uiModel の内容を各 UI コンポーネントへ反映する。
     private func setupUI(_ uiModel: RepositoryDetailUIModel) {
-        title = uiModel.repositoryName
-        ownerNameLabel.text = uiModel.ownerName
         avatarImageView.image = nil
         avatarImageView.sd_setImage(with: uiModel.ownerAvatarURL, completed: { [weak self] _, error, _, _ in
             if error != nil {
                 self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal)
             }
         })
+        ownerNameLabel.text = uiModel.ownerName
         repositoryNameLabel.text = uiModel.repositoryName
         descriptionLabel.text = uiModel.description
         starCountLabel.text = uiModel.starCountText
