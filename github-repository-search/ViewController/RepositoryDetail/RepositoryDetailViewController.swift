@@ -158,6 +158,8 @@ final class RepositoryDetailViewController: UIViewController {
         scrollView.addSubview(cardView)
         cardView.addSubview(contentStackView)
 
+        infoStackView.setCustomSpacing(16, after: languageStackView)
+
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
