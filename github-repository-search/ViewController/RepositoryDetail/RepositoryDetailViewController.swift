@@ -135,6 +135,43 @@ final class RepositoryDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
+        navigationItem.largeTitleDisplayMode = .never
+        setupViews()
+    }
+
+    private func setupViews() {
+        view.addSubview(scrollView)
+        scrollView.addSubview(cardView)
+        cardView.addSubview(contentStackView)
+
+        // 「画像にある項目」とそれ以外の間に少し余白を空けて区切りをつける。
+        infoStackView.setCustomSpacing(20, after: issueCountLabel)
+
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            // カードはスクロールする中身（contentLayoutGuide）に上下20で留める。
+            // 幅は可視領域（frameLayoutGuide）に左右20で留める。
+            cardView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 20),
+            cardView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 20),
+            cardView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -20),
+            cardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -20),
+
+            // 中身の下もカード下に留めることで、カードの高さが中身の高さに確定する。
+            contentStackView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 28),
+            contentStackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
+            contentStackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
+            contentStackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -28),
+
+            avatarImageView.widthAnchor.constraint(equalToConstant: 80),
+            avatarImageView.heightAnchor.constraint(equalToConstant: 80),
+
+            languageDotView.widthAnchor.constraint(equalToConstant: 12),
+            languageDotView.heightAnchor.constraint(equalToConstant: 12)
+        ])
     }
 
     /// fork数・issue数・更新日・topics 用の、グレー系サブラベルを生成する。
