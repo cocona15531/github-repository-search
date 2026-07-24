@@ -115,7 +115,7 @@ final class RepositoryDetailViewController: UIViewController {
         ])
         stackView.axis = .vertical
         stackView.alignment = .leading
-        stackView.spacing = 8
+        stackView.spacing = 10
         return stackView
     }()
 
@@ -147,9 +147,6 @@ final class RepositoryDetailViewController: UIViewController {
         view.addSubview(scrollView)
         scrollView.addSubview(cardView)
         cardView.addSubview(contentStackView)
-
-        // 「画像にある項目」とそれ以外の間に少し余白を空けて区切りをつける。
-        infoStackView.setCustomSpacing(20, after: issueCountLabel)
 
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
