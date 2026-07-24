@@ -10,6 +10,11 @@ import Foundation
 
 @MainActor
 final class RepositorySearchViewModel {
+    /// この画面から遷移しうる画面を表す。View はこれを購読して遷移を行う。
+    enum Router: Equatable {
+        case detail(GitHubRepository)
+    }
+
     /// View からの検索文字列の送信口。
     private let searchQuerySubmitted = PassthroughSubject<String, Never>()
     private var cancellables = Set<AnyCancellable>()
@@ -18,6 +23,8 @@ final class RepositorySearchViewModel {
 
     /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
     @Published private(set) var repositories: [RepositoryRowUIModel] = []
+    /// 画面遷移のトリガー。セル選択時に遷移先が入る。
+    @Published private(set) var router: Router?
 
     init(repository: any RepositorySearchRepositoryProtocol = RepositorySearchRepository()) {
         self.repository = repository
