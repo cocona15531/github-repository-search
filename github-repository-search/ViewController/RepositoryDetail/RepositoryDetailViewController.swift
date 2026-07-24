@@ -35,7 +35,7 @@ final class RepositoryDetailViewController: UIViewController {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 16
-        imageView.backgroundColor = .systemBackground
+        imageView.backgroundColor = .systemGray4
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -158,7 +158,6 @@ final class RepositoryDetailViewController: UIViewController {
         scrollView.addSubview(cardView)
         cardView.addSubview(contentStackView)
 
-        infoStackView.setCustomSpacing(16, after: starCountLabel)
         infoStackView.setCustomSpacing(16, after: languageStackView)
 
         NSLayoutConstraint.activate([
@@ -196,7 +195,12 @@ final class RepositoryDetailViewController: UIViewController {
                 guard let self else { return }
                 self.title = uiModel.repositoryName
                 self.ownerNameLabel.text = uiModel.ownerName
-                self.avatarImageView.sd_setImage(with: uiModel.ownerAvatarURL)
+                self.avatarImageView.image = nil
+                self.avatarImageView.sd_setImage(with: uiModel.ownerAvatarURL, completed: { [weak self] _, error, _, _ in
+                    if error != nil {
+                        self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                    }
+                })
                 self.repositoryNameLabel.text = uiModel.repositoryName
                 self.descriptionLabel.text = uiModel.description
                 self.starCountLabel.text = uiModel.starCountText
