@@ -5,13 +5,16 @@
 //  Created by Issei Ueda on 2026/07/23.
 //
 
+import Combine
+import SDWebImage
 import UIKit
 
-/// リポジトリの詳細情報を表示する画面。
+/// リポジトリの詳細情報をカード型レイアウトで表示する画面。
 ///
-/// レイアウトと表示内容の反映は後続のコミットで追加する。
+/// アバターとオーナー名を上部中央に表示し、その下に各種情報（説明・スター/Fork/Issue 数・言語・更新日・topics）を左寄せで並べる。
 final class RepositoryDetailViewController: UIViewController {
     private let viewModel: RepositoryDetailViewModel
+    private var cancellables = Set<AnyCancellable>()
 
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -127,7 +130,7 @@ final class RepositoryDetailViewController: UIViewController {
 
     init(viewModel: RepositoryDetailViewModel) {
         self.viewModel = viewModel
-        super.init()
+        super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -137,6 +140,7 @@ final class RepositoryDetailViewController: UIViewController {
         view.backgroundColor = .systemBackground
         navigationItem.largeTitleDisplayMode = .never
         setupViews()
+        bindViewModel()
     }
 
     private func setupViews() {
@@ -172,6 +176,38 @@ final class RepositoryDetailViewController: UIViewController {
             languageDotView.widthAnchor.constraint(equalToConstant: 12),
             languageDotView.heightAnchor.constraint(equalToConstant: 12)
         ])
+    }
+
+    /// ViewModel の表示内容を購読し、各 UI コンポーネントへ反映する。
+    private func bindViewModel() {
+        viewModel.$uiModel
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] uiModel in
+                guard let self else { return }
+                self.title = uiModel.repositoryName
+                self.ownerNameLabel.text = uiModel.ownerName
+                self.avatarImageView.sd_setImage(with: uiModel.ownerAvatarURL)
+                self.repositoryNameLabel.text = uiModel.repositoryName
+                self.descriptionLabel.text = uiModel.description
+                self.starCountLabel.text = uiModel.starCountText
+                self.forkCountLabel.text = uiModel.forkCountText
+                self.issueCountLabel.text = uiModel.issueCountText
+
+                if let languageText = uiModel.languageText {
+                    self.languageLabel.text = languageText
+                    self.languageDotView.backgroundColor = LanguageColor.color(for: languageText)
+                    self.languageStackView.isHidden = false
+                } else {
+                    self.languageStackView.isHidden = true
+                }
+
+                self.updatedAtLabel.text = uiModel.updatedAtText
+                self.updatedAtLabel.isHidden = uiModel.updatedAtText.isEmpty
+
+                self.topicsLabel.text = uiModel.topicsText
+                self.topicsLabel.isHidden = uiModel.topicsText.isEmpty
+            }
+            .store(in: &cancellables)
     }
 
     /// fork数・issue数・更新日・topics 用の、グレー系サブラベルを生成する。
