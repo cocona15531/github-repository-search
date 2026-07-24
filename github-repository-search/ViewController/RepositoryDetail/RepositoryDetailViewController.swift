@@ -220,11 +220,10 @@ final class RepositoryDetailViewController: UIViewController {
             .store(in: &cancellables)
     }
 
-    /// fork数・issue数・更新日・topics 用の、グレー系サブラベルを生成する。
+    /// fork数・issue数・更新日・topics 用の、少し小さめ（14pt）のサブ情報ラベルを生成する。
     private static func makeSubLabel() -> UILabel {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14, weight: .medium)
-        label.textColor = .secondaryLabel
         label.numberOfLines = 0
         return label
     }
