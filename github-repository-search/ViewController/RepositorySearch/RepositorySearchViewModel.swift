@@ -12,11 +12,8 @@ import Foundation
 final class RepositorySearchViewModel {
     /// View からの検索文字列の送信口。
     private let searchQuerySubmitted = PassthroughSubject<String, Never>()
-
     private var cancellables = Set<AnyCancellable>()
-
     private let repository: any RepositorySearchRepositoryProtocol
-
     private var fetchedRepositories: [GitHubRepository] = []
 
     /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
