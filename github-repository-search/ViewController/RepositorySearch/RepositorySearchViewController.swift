@@ -144,8 +144,7 @@ extension RepositorySearchViewController: UICollectionViewDelegate {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let rowUIModel = dataSource.itemIdentifier(for: indexPath),
               let repository = viewModel.repository(withId: rowUIModel.id) else { return }
-        let detailViewModel = RepositoryDetailViewModel(gitHubRepository: repository)
-        let detailViewController = RepositoryDetailViewController(viewModel: detailViewModel)
+        let detailViewController = RepositoryDetailViewControllerProvider.build(repository: repository)
         navigationController?.pushViewController(detailViewController, animated: true)
     }
 }
