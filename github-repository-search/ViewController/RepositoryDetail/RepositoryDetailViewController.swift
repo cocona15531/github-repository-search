@@ -205,41 +205,45 @@ final class RepositoryDetailViewController: UIViewController {
         ])
     }
 
-    /// ViewModel の表示内容を購読し、各 UI コンポーネントへ反映する。
+    /// ViewModel の表示内容を購読し、更新のたびに setupUI で UI を反映する。
     private func bindViewModel() {
         viewModel.$uiModel
             .receive(on: DispatchQueue.main)
             .sink { [weak self] uiModel in
-                guard let self else { return }
-                self.title = uiModel.repositoryName
-                self.ownerNameLabel.text = uiModel.ownerName
-                self.avatarImageView.image = nil
-                self.avatarImageView.sd_setImage(with: uiModel.ownerAvatarURL, completed: { [weak self] _, error, _, _ in
-                    if error != nil {
-                        self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal)
-                    }
-                })
-                self.repositoryNameLabel.text = uiModel.repositoryName
-                self.descriptionLabel.text = uiModel.description
-                self.starCountLabel.text = uiModel.starCountText
-                self.forkCountLabel.text = uiModel.forkCountText
-                self.issueCountLabel.text = uiModel.issueCountText
-
-                if let languageText = uiModel.languageText {
-                    self.languageLabel.text = languageText
-                    self.languageDotView.backgroundColor = LanguageColor.color(for: languageText)
-                    self.languageStackView.isHidden = false
-                } else {
-                    self.languageStackView.isHidden = true
-                }
-
-                self.updatedAtLabel.text = uiModel.updatedAtText
-                self.updatedAtLabel.isHidden = uiModel.updatedAtText.isEmpty
-
-                self.topicsLabel.text = uiModel.topicsText
-                self.topicsLabel.isHidden = uiModel.topicsText.isEmpty
+                self?.setupUI(uiModel)
             }
             .store(in: &cancellables)
+    }
+
+    /// uiModel の内容を各 UI コンポーネントへ反映する。
+    private func setupUI(_ uiModel: RepositoryDetailUIModel) {
+        title = uiModel.repositoryName
+        ownerNameLabel.text = uiModel.ownerName
+        avatarImageView.image = nil
+        avatarImageView.sd_setImage(with: uiModel.ownerAvatarURL, completed: { [weak self] _, error, _, _ in
+            if error != nil {
+                self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal)
+            }
+        })
+        repositoryNameLabel.text = uiModel.repositoryName
+        descriptionLabel.text = uiModel.description
+        starCountLabel.text = uiModel.starCountText
+        forkCountLabel.text = uiModel.forkCountText
+        issueCountLabel.text = uiModel.issueCountText
+
+        if let languageText = uiModel.languageText {
+            languageLabel.text = languageText
+            languageDotView.backgroundColor = LanguageColor.color(for: languageText)
+            languageStackView.isHidden = false
+        } else {
+            languageStackView.isHidden = true
+        }
+
+        updatedAtLabel.text = uiModel.updatedAtText
+        updatedAtLabel.isHidden = uiModel.updatedAtText.isEmpty
+
+        topicsLabel.text = uiModel.topicsText
+        topicsLabel.isHidden = uiModel.topicsText.isEmpty
     }
 
     /// fork数・issue数・更新日・topics 用の、少し小さめ（14pt）のサブ情報ラベルを生成する。
