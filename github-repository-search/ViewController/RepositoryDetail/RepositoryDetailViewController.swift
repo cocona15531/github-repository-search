@@ -108,6 +108,16 @@ final class RepositoryDetailViewController: UIViewController {
             descriptionLabel,
             starCountLabel,
             languageStackView,
+            subInfoStackView
+        ])
+        stackView.axis = .vertical
+        stackView.alignment = .leading
+        stackView.spacing = 10
+        return stackView
+    }()
+
+    private lazy var subInfoStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [
             forkCountLabel,
             issueCountLabel,
             updatedAtLabel,
@@ -115,7 +125,7 @@ final class RepositoryDetailViewController: UIViewController {
         ])
         stackView.axis = .vertical
         stackView.alignment = .leading
-        stackView.spacing = 10
+        stackView.spacing = 8
         return stackView
     }()
 
