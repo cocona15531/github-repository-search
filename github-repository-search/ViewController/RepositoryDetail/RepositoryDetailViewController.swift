@@ -133,7 +133,7 @@ final class RepositoryDetailViewController: UIViewController {
         let stackView = UIStackView(arrangedSubviews: [ownerStackView, infoStackView])
         stackView.axis = .vertical
         stackView.alignment = .fill
-        stackView.spacing = 28
+        stackView.spacing = 40
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
@@ -158,6 +158,7 @@ final class RepositoryDetailViewController: UIViewController {
         scrollView.addSubview(cardView)
         cardView.addSubview(contentStackView)
 
+        infoStackView.setCustomSpacing(16, after: starCountLabel)
         infoStackView.setCustomSpacing(16, after: languageStackView)
 
         NSLayoutConstraint.activate([
@@ -174,10 +175,10 @@ final class RepositoryDetailViewController: UIViewController {
             cardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -20),
 
             // 中身の下もカード下に留めることで、カードの高さが中身の高さに確定する。
-            contentStackView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 28),
+            contentStackView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 100),
             contentStackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
             contentStackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20),
-            contentStackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -28),
+            contentStackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -100),
 
             avatarImageView.widthAnchor.constraint(equalToConstant: 80),
             avatarImageView.heightAnchor.constraint(equalToConstant: 80),
