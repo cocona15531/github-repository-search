@@ -27,7 +27,9 @@ final class RepositoryDetailViewController: UIViewController {
     //               ┗ infoStackView(UIStackView) (W: contentStackView.W, H: 内容に応じたH)
     //                     ┣ repositoryNameLabel(W: 最大 infoStackView.W, H: 折り返したtextのsizeに合わせる)
     //                     ┣ descriptionLabel(W: 最大 infoStackView.W, H: 折り返したtextのsizeに合わせる)
-    //                     ┣ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //                     ┣ starStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+    //                     ┃     ┣ starButton(W: アイコンサイズ, H: アイコンサイズ)
+    //                     ┃     ┗ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
     //                     ┣ languageStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
     //                     ┃     ┣ languageDotView(W: 12, H: 12)
     //                     ┃     ┗ languageLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
@@ -91,10 +93,24 @@ final class RepositoryDetailViewController: UIViewController {
         return label
     }()
 
+    private let starButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "star", withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
+        button.tintColor = .black
+        return button
+    }()
+
     private let starCountLabel: UILabel = {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 20)
         return label
+    }()
+
+    private lazy var starStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [starButton, starCountLabel])
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        return stackView
     }()
 
     private let languageDotView: UIView = {
@@ -127,7 +143,7 @@ final class RepositoryDetailViewController: UIViewController {
         let stackView = UIStackView(arrangedSubviews: [
             repositoryNameLabel,
             descriptionLabel,
-            starCountLabel,
+            starStackView,
             languageStackView,
             subInfoStackView
         ])
