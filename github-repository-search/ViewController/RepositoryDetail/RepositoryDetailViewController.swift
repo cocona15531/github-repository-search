@@ -16,6 +16,27 @@ final class RepositoryDetailViewController: UIViewController {
     private let viewModel: RepositoryDetailViewModel
     private var cancellables = Set<AnyCancellable>()
 
+    // MARK: - View構造
+    // view(W: 画面幅, H: 画面高)
+    //   ┗ scrollView(W: view.frame.W, H: safeArea上端〜view下端)
+    //       ┗ cardView(W: 可視領域の左右40を除いた幅, H: 内容に応じて可変)
+    //           ┗ contentStackView(UIStackView) (W: cardView.W - 40, H: 内容に応じて可変)
+    //               ┣ ownerStackView(UIStackView) (W: contentStackView.W, H: 内容に応じたH)
+    //               ┃     ┣ avatarImageView(W: 80, H: 80)
+    //               ┃     ┗ ownerNameLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //               ┗ infoStackView(UIStackView) (W: contentStackView.W, H: 内容に応じたH)
+    //                     ┣ repositoryNameLabel(W: 最大 infoStackView.W, H: 折り返したtextのsizeに合わせる)
+    //                     ┣ descriptionLabel(W: 最大 infoStackView.W, H: 折り返したtextのsizeに合わせる)
+    //                     ┣ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //                     ┣ languageStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+    //                     ┃     ┣ languageDotView(W: 12, H: 12)
+    //                     ┃     ┗ languageLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //                     ┗ subInfoStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+    //                           ┣ forkCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //                           ┣ issueCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //                           ┣ updatedAtLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+    //                           ┗ topicsLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
