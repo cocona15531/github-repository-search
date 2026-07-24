@@ -36,8 +36,8 @@ struct RepositoryResponse: Decodable {
     let forksCount: Int
     /// オープンな Issue 数。
     let openIssuesCount: Int
-    /// 最後に push された日時（ISO8601 文字列）。存在しない場合は nil になる。
-    let pushedAtString: String?
+    /// 最後に更新された日時（ISO8601 文字列）。存在しない場合は nil になる。
+    let updatedAtString: String?
     /// リポジトリに設定されたトピック一覧。存在しない場合は nil になる。
     let topics: [String]?
 
@@ -70,7 +70,7 @@ struct RepositoryResponse: Decodable {
         case forksCount = "forks_count"
         /// openIssuesCount は JSON では "open_issues_count" というキーで表されるため、対応づけを行う。
         case openIssuesCount = "open_issues_count"
-        /// pushedAtString は JSON では "pushed_at" というキーで表されるため、対応づけを行う。
-        case pushedAtString = "pushed_at"
+        /// updatedAtString は JSON では "updated_at" というキーで表されるため、対応づけを行う。
+        case updatedAtString = "updated_at"
     }
 }

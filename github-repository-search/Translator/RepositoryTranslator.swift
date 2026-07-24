@@ -22,7 +22,7 @@ enum RepositoryTranslator {
             ),
             forksCount: response.forksCount,
             openIssuesCount: response.openIssuesCount,
-            pushedAtString: response.pushedAtString,
+            updatedAtString: response.updatedAtString,
             topics: response.topics ?? []
         )
     }

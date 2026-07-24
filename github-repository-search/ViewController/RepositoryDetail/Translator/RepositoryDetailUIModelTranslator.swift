@@ -21,7 +21,7 @@ enum RepositoryDetailUIModelTranslator {
             languageText: repository.language,
             forkCountText: "フォーク数：\(formattedCount(repository.forksCount))",
             issueCountText: "issue数：\(formattedCount(repository.openIssuesCount))",
-            updatedAtText: formattedUpdatedAt(repository.pushedAtString),
+            updatedAtText: formattedUpdatedAt(repository.updatedAtString),
             topicsText: formattedTopics(repository.topics)
         )
     }
@@ -33,7 +33,7 @@ enum RepositoryDetailUIModelTranslator {
         return formatter.string(from: NSNumber(value: count)) ?? "\(count)"
     }
 
-    /// ISO8601 の pushed_at を「更新日：yyyy/MM/dd」に整形する。無い・解釈できない場合は空文字にする。
+    /// ISO8601 の updated_at を「更新日：yyyy/MM/dd」に整形する。無い・解釈できない場合は空文字にする。
     private static func formattedUpdatedAt(_ isoString: String?) -> String {
         guard let isoString, let date = ISO8601DateFormatter().date(from: isoString) else { return "" }
         let formatter = DateFormatter()
