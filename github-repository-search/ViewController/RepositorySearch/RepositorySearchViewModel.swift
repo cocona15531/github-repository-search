@@ -47,9 +47,10 @@ final class RepositorySearchViewModel {
         repositories = []
     }
 
-    /// 指定 id の DataModel を返す。セル選択時に詳細画面へ渡す元データを引くために使う。
-    func repository(withId id: Int) -> GitHubRepository? {
-        fetchedRepositories.first { $0.id == id }
+    /// セルが選択されたことをこの ViewModel に伝える。遷移先（Router）の決定をここで行う。
+    func didSelectRepository(id: Int) {
+        guard let repository = fetchedRepositories.first(where: { $0.id == id }) else { return }
+        router = .detail(repository)
     }
 
     private func search(query: String) async {
