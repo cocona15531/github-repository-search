@@ -20,11 +20,11 @@ nonisolated struct RepositoryDetailUIModel: Hashable, Sendable {
     let repositoryName: String
     /// リポジトリの説明。未設定の場合は代替文言が入る。
     let description: String
-    /// スター数の表示文字列（例: ★ 56000）。
+    /// スター数の表示文字列（例: ☆56,000）。
     let starCountText: String
-    /// 主要言語。設定されていない場合は nil。
+    /// 主要言語（例: Swift）。設定されていない場合は nil。
     let languageText: String?
-    /// フォーク数の表示文字列（例: フォーク数：1234）。
+    /// フォーク数の表示文字列（例: フォーク数：1,234）。
     let forkCountText: String
     /// オープンな Issue 数の表示文字列（例: issue数：56）。
     let issueCountText: String
