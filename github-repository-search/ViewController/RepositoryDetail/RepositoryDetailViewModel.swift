@@ -40,4 +40,22 @@ final class RepositoryDetailViewModel {
     private func updateUIModel() {
         uiModel = RepositoryDetailUIModelTranslator.translate(from: gitHubRepository, starCount: displayStarCount)
     }
+
+    /// 画面表示時に呼ぶ。スター状態を取得してボタンと表示数に反映する。
+    func onAppear() {
+        Task {
+            do {
+                let starred = try await repository.isStarred(
+                    owner: gitHubRepository.owner.login,
+                    name: gitHubRepository.name
+                )
+                isStarredAtFetch = starred
+                isStarred = starred
+                updateUIModel()
+            } catch {
+                print(error.localizedDescription)
+            }
+            isStarButtonEnabled = true
+        }
+    }
 }
