@@ -14,6 +14,6 @@ final class RepositoryDetailViewModel {
     @Published private(set) var uiModel: RepositoryDetailUIModel
 
     init(gitHubRepository: GitHubRepository) {
-        self.uiModel = RepositoryDetailUIModelTranslator.translate(from: gitHubRepository)
+        self.uiModel = RepositoryDetailUIModelTranslator.translate(from: gitHubRepository, starCount: gitHubRepository.stargazersCount)
     }
 }
