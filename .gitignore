@@ -36,3 +36,6 @@ fastlane/test_output
 iOSInjectionProject/
 
 .DS_Store
+
+# API アクセストークンを含むためコミットしない
+Secrets.swift
