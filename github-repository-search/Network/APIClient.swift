@@ -61,6 +61,11 @@ final class APIClient {
             }
         }
 
+        // star 系 API の成功レスポンスは 204（本文なし）で返るため、デコードせず NoContent を返す。
+        if httpResponse.statusCode == 204, data.isEmpty, let noContent = NoContent() as? Response {
+            return noContent
+        }
+
         do {
             return try decoder.decode(Response.self, from: data)
         } catch {
