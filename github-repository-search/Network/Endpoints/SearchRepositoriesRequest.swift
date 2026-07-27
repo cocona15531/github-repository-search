@@ -11,7 +11,6 @@ import Foundation
 struct SearchRepositoriesRequest: RequestType {
     let path = "/search/repositories"
     let method: HTTPMethod = .get
-
     let query: String
     var queryItems: [URLQueryItem] {
         [URLQueryItem(name: "q", value: query)]

@@ -9,8 +9,8 @@ import Foundation
 
 /// 指定リポジトリを自分がスターしているかを確認する構造体。
 struct GetStarStatusRequest: RequestType {
+    var path: String { "/user/starred/\(owner)/\(repo)" }
+    let method: HTTPMethod = .get
     let owner: String
     let repo: String
-    let method: HTTPMethod = .get
-    var path: String { "/user/starred/\(owner)/\(repo)" }
 }
