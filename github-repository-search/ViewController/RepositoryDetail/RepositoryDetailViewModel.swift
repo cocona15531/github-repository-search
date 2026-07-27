@@ -59,6 +59,7 @@ final class RepositoryDetailViewModel {
     /// スターボタンがタップされたことを伝える。現在の状態に応じてスターを付与/解除する。
     func didTapStar() {
         Task {
+            isStarButtonEnabled = false
             do {
                 if isStarred {
                     try await repository.unstar(owner: gitHubRepository.owner.login, name: gitHubRepository.name)
@@ -71,6 +72,7 @@ final class RepositoryDetailViewModel {
             } catch {
                 print(error.localizedDescription)
             }
+            isStarButtonEnabled = true
         }
     }
 }
