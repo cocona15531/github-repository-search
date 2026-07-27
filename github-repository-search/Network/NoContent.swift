@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// 本文を持たない成功レスポンス（204 No Content）を表す型。
+/// レスポンスボディを持たない成功レスポンス（204 No Content）を表す型。
 ///
-/// star / unstar / スター状態確認のように、成功時に本文が返らないエンドポイントの Response 型として使う。
+/// star / unstar / スター状態確認のように、成功時にレスポンスボディが返らないエンドポイントの Response 型として使う。
 struct NoContent: ResponseType {}

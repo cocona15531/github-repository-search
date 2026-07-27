@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// 指定リポジトリのスターを外す API のリクエストを表す構造体。成功時は 204（本文なし）が返る。
+/// 指定リポジトリのスターを外す API のリクエストを表す構造体。成功時は 204（レスポンスボディなし）が返る。
 struct UnstarRepositoryRequest: RequestType {
     let owner: String
     let repo: String
