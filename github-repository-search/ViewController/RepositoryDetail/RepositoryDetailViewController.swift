@@ -197,6 +197,10 @@ final class RepositoryDetailViewController: UIViewController {
 
         infoStackView.setCustomSpacing(16, after: languageStackView)
 
+        starButton.addAction(UIAction { [weak self] _ in
+            self?.viewModel.didTapStar()
+        }, for: .touchUpInside)
+
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
