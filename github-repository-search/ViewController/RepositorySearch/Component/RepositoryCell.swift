@@ -45,7 +45,7 @@ final class RepositoryCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 10
-        imageView.backgroundColor = .systemGray4
+        imageView.backgroundColor = .white
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -135,7 +135,7 @@ final class RepositoryCell: UICollectionViewCell {
         avatarImageView.image = nil
         avatarImageView.sd_setImage(with: repository.ownerAvatarURL, completed: { [weak self] _, error, _, _ in
             if error != nil {
-                self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+                self?.avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.systemGray3, renderingMode: .alwaysOriginal)
             }
         })
     }

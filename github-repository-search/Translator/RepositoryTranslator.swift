@@ -19,7 +19,11 @@ enum RepositoryTranslator {
             owner: GitHubRepository.Owner(
                 login: response.owner.login,
                 avatarURLString: response.owner.avatarURLString
-            )
+            ),
+            forksCount: response.forksCount,
+            openIssuesCount: response.openIssuesCount,
+            updatedAtString: response.updatedAtString,
+            topics: response.topics ?? []
         )
     }
 }

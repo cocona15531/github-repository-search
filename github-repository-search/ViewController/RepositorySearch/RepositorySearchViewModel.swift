@@ -10,15 +10,21 @@ import Foundation
 
 @MainActor
 final class RepositorySearchViewModel {
+    /// この画面から遷移しうる画面を表す。View はこれを購読して遷移を行う。
+    enum Router: Equatable {
+        case detail(GitHubRepository)
+    }
+
     /// View からの検索文字列の送信口。
     private let searchQuerySubmitted = PassthroughSubject<String, Never>()
-
     private var cancellables = Set<AnyCancellable>()
-
     private let repository: any RepositorySearchRepositoryProtocol
+    private var fetchedRepositories: [GitHubRepository] = []
 
     /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
     @Published private(set) var repositories: [RepositoryRowUIModel] = []
+    /// 画面遷移のトリガー。セル選択時に遷移先が入る。
+    @Published private(set) var router: Router?
 
     init(repository: any RepositorySearchRepositoryProtocol = RepositorySearchRepository()) {
         self.repository = repository
@@ -37,12 +43,19 @@ final class RepositorySearchViewModel {
     }
 
     func didClearSearch() {
+        fetchedRepositories = []
         repositories = []
+    }
+
+    /// セルが選択されたことをこの ViewModel に伝える。遷移先（Router）の決定をここで行う。
+    func didSelectRepository(id: Int) {
+        guard let repository = fetchedRepositories.first(where: { $0.id == id }) else { return }
+        router = .detail(repository)
     }
 
     private func search(query: String) async {
         do {
-            let fetchedRepositories = try await repository.searchRepositories(query: query)
+            fetchedRepositories = try await repository.searchRepositories(query: query)
             repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
         } catch {
             print(error.localizedDescription)

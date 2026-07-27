@@ -71,6 +71,7 @@ final class RepositorySearchViewController: UIViewController {
             navigationItem.preferredSearchBarPlacement = .stacked
         }
         setupViews()
+        collectionView.delegate = self
         bindViewModel()
     }
 
@@ -122,6 +123,19 @@ final class RepositorySearchViewController: UIViewController {
                 self.emptyStateStackView.isHidden = !repositories.isEmpty
             }
             .store(in: &cancellables)
+
+        viewModel.$router
+            .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] router in
+                guard let self else { return }
+                switch router {
+                case .detail(let repository):
+                    let vc = RepositoryDetailViewControllerProvider.build(repository: repository)
+                    self.navigationController?.pushViewController(vc, animated: true)
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -138,3 +152,10 @@ extension RepositorySearchViewController: UISearchBarDelegate {
     }
 }
 
+extension RepositorySearchViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        guard let rowUIModel = dataSource.itemIdentifier(for: indexPath) else { return }
+        viewModel.didSelectRepository(id: rowUIModel.id)
+    }
+}
