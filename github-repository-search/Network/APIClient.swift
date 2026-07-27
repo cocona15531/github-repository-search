@@ -11,8 +11,13 @@ final class APIClient {
     private let baseURL = URL(string: "https://api.github.com")!
     private let session: URLSession
     private let decoder = JSONDecoder()
+    /// 認証が必要なエンドポイント（star 系）向けのアクセストークン。nil の場合は Authorization を付けない。
+    private let accessToken: String?
 
-    init(session: URLSession = .shared) { self.session = session }
+    init(session: URLSession = .shared, accessToken: String? = nil) {
+        self.session = session
+        self.accessToken = accessToken
+    }
 
     /// 任意の API リクエストを送信し、レスポンスをデコードして返す汎用メソッド。
     ///
@@ -26,6 +31,10 @@ final class APIClient {
         // APIのバージョンを指定することで将来的な互換性の問題を回避できる可能性があるため設定しておく。
         // ここではコードサンプルに記載されている日付を使用する。
         urlRequest.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
+        // star 系 API は自分のアカウント権限が必要なので、トークンがあれば Authorization ヘッダーに付与する。
+        if let accessToken {
+            urlRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        }
 
         let data: Data
         let response: URLResponse
