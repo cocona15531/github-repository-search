@@ -233,6 +233,26 @@ final class RepositoryDetailViewController: UIViewController {
                 self?.setupUI(uiModel)
             }
             .store(in: &cancellables)
+
+        viewModel.$isStarred
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isStarred in
+                self?.updateStarButton(isStarred: isStarred)
+            }
+            .store(in: &cancellables)
+
+        viewModel.$isStarButtonEnabled
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isEnabled in
+                self?.starButton.isEnabled = isEnabled
+            }
+            .store(in: &cancellables)
+    }
+
+    /// スター状態に応じて、ボタンの星アイコン（未スター=star／スター済み=star.fill）を切り替える。
+    private func updateStarButton(isStarred: Bool) {
+        let imageName = isStarred ? "star.fill" : "star"
+        starButton.setImage(UIImage(systemName: imageName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
     }
 
     /// uiModel の内容を各 UI コンポーネントへ反映する。
