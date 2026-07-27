@@ -19,6 +19,8 @@ final class RepositoryDetailViewModel {
 
     private let gitHubRepository: GitHubRepository
     private let repository: any RepositoryDetailRepositoryProtocol
+    /// 状態取得時点でスター済みだったか。stargazersCount はこの状態を含むため、表示数の基準に使う。
+    private var isStarredAtFetch = false
 
     init(
         gitHubRepository: GitHubRepository,
@@ -27,5 +29,15 @@ final class RepositoryDetailViewModel {
         self.gitHubRepository = gitHubRepository
         self.repository = repository
         self.uiModel = RepositoryDetailUIModelTranslator.translate(from: gitHubRepository, starCount: gitHubRepository.stargazersCount)
+    }
+
+    /// 取得時の全体数を基準に、取得時からのスター状態の変化分だけ増減した表示用スター数。
+    private var displayStarCount: Int {
+        gitHubRepository.stargazersCount - (isStarredAtFetch ? 1 : 0) + (isStarred ? 1 : 0)
+    }
+
+    /// 現在のスター状態に応じた表示数で uiModel を作り直す。
+    private func updateUIModel() {
+        uiModel = RepositoryDetailUIModelTranslator.translate(from: gitHubRepository, starCount: displayStarCount)
     }
 }
