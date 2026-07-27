@@ -188,6 +188,7 @@ final class RepositoryDetailViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .never
         setupViews()
         bindViewModel()
+        viewModel.onAppear()
     }
 
     private func setupViews() {
