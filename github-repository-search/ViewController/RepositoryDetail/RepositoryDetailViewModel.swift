@@ -13,7 +13,15 @@ final class RepositoryDetailViewModel {
     /// 詳細画面の表示内容。View はこれを購読して表示に使う。
     @Published private(set) var uiModel: RepositoryDetailUIModel
 
-    init(gitHubRepository: GitHubRepository) {
+    private let gitHubRepository: GitHubRepository
+    private let repository: any RepositoryDetailRepositoryProtocol
+
+    init(
+        gitHubRepository: GitHubRepository,
+        repository: any RepositoryDetailRepositoryProtocol = RepositoryDetailRepository()
+    ) {
+        self.gitHubRepository = gitHubRepository
+        self.repository = repository
         self.uiModel = RepositoryDetailUIModelTranslator.translate(from: gitHubRepository, starCount: gitHubRepository.stargazersCount)
     }
 }
