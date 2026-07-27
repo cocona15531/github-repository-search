@@ -40,7 +40,7 @@ final class RepositoryDetailViewModel {
     }
 
     /// 画面表示時に呼ぶ。スター状態を取得してボタンと表示数に反映する。
-    func onAppear() {
+    func didAppear() {
         Task {
             do {
                 let starred = try await repository.isStarred(
