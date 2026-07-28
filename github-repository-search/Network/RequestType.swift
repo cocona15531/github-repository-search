@@ -18,17 +18,3 @@ protocol RequestType {
 extension RequestType {
     var queryItems: [URLQueryItem] { [] }
 }
-
-extension URLRequest {
-    /// RequestType と baseURL から URLRequest を組み立てる。
-    init?<Request>(_ request: Request, baseURL: URL) where Request: RequestType {
-        let url = baseURL.appending(path: request.path)
-        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
-        if !request.queryItems.isEmpty {
-            components.queryItems = request.queryItems
-        }
-        guard let urlWithQuery = components.url else { return nil }
-        self.init(url: urlWithQuery)
-        self.httpMethod = request.method.rawValue
-    }
-}

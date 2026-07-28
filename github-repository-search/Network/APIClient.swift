@@ -23,7 +23,7 @@ final class APIClient {
     ///
     /// エンドポイントごとに処理を書かず、Request / Response 型を渡すだけで呼び出せる。
     func send<Request, Response>(_ request: Request) async throws(APIError) -> Response where Request: RequestType, Response: ResponseType {
-        guard var urlRequest = URLRequest(request, baseURL: baseURL) else { throw .invalidURL }
+        guard var urlRequest = makeURLRequest(from: request) else { throw .invalidURL }
         // application/vnd.github+json を Accept ヘッダーに設定することが公式ドキュメントで推奨されているので設定する。
         // https://docs.github.com/ja/rest/search/search?apiVersion=2026-03-10#search-repositories
         urlRequest.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
@@ -71,5 +71,18 @@ final class APIClient {
         } catch {
             throw .decode(error)
         }
+    }
+
+    /// RequestType と baseURL から URLRequest を組み立てる。
+    private func makeURLRequest<Request: RequestType>(from request: Request) -> URLRequest? {
+        let url = baseURL.appending(path: request.path)
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return nil }
+        if !request.queryItems.isEmpty {
+            components.queryItems = request.queryItems
+        }
+        guard let urlWithQuery = components.url else { return nil }
+        var urlRequest = URLRequest(url: urlWithQuery)
+        urlRequest.httpMethod = request.method.rawValue
+        return urlRequest
     }
 }
