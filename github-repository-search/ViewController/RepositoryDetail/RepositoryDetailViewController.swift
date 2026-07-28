@@ -110,6 +110,7 @@ final class RepositoryDetailViewController: UIViewController {
         let stackView = UIStackView(arrangedSubviews: [starButton, starCountLabel])
         stackView.axis = .horizontal
         stackView.alignment = .center
+        stackView.spacing = 4
         return stackView
     }()
 
@@ -188,6 +189,7 @@ final class RepositoryDetailViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .never
         setupViews()
         bindViewModel()
+        viewModel.didAppear()
     }
 
     private func setupViews() {
@@ -196,6 +198,10 @@ final class RepositoryDetailViewController: UIViewController {
         cardView.addSubview(contentStackView)
 
         infoStackView.setCustomSpacing(16, after: languageStackView)
+
+        starButton.addAction(UIAction { [weak self] _ in
+            self?.viewModel.didTapStar()
+        }, for: .touchUpInside)
 
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -229,6 +235,28 @@ final class RepositoryDetailViewController: UIViewController {
                 self?.setupUI(uiModel)
             }
             .store(in: &cancellables)
+
+        viewModel.$isStarred
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isStarred in
+                self?.updateStarButton(isStarred: isStarred)
+            }
+            .store(in: &cancellables)
+
+        viewModel.$isStarButtonEnabled
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isEnabled in
+                self?.starButton.isEnabled = isEnabled
+            }
+            .store(in: &cancellables)
+    }
+
+    /// スター状態に応じて、ボタンの星アイコンと色を切り替える。
+    /// 未スター=star（黒）／スター済み=star.fill（黄色の塗りつぶし）。
+    private func updateStarButton(isStarred: Bool) {
+        let imageName = isStarred ? "star.fill" : "star"
+        starButton.setImage(UIImage(systemName: imageName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
+        starButton.tintColor = isStarred ? .systemYellow : .black
     }
 
     /// uiModel の内容を各 UI コンポーネントへ反映する。

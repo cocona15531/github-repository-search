@@ -11,13 +11,15 @@ import Foundation
 ///
 /// 数値・日付・トピックの整形や nil 処理をこのファイルに集約し、View や ViewModel では行わせない。
 enum RepositoryDetailUIModelTranslator {
-    static func translate(from repository: GitHubRepository) -> RepositoryDetailUIModel {
+    /// starCount は「表示すべき実効スター数」を呼び出し側（ViewModel）が計算して渡す。
+    /// スターのトグルによる増減判定はここでは行わず、渡された数を整形するだけにする。
+    static func translate(from repository: GitHubRepository, starCount: Int) -> RepositoryDetailUIModel {
         RepositoryDetailUIModel(
             ownerName: repository.owner.login,
             ownerAvatarURL: URL(string: repository.owner.avatarURLString),
             repositoryName: repository.name,
             description: repository.description ?? "説明はありません",
-            starCountText: formattedCount(repository.stargazersCount),
+            starCountText: formattedCount(starCount),
             languageText: repository.language,
             forkCountText: "フォーク数：\(formattedCount(repository.forksCount))",
             issueCountText: "issue数：\(formattedCount(repository.openIssuesCount))",
