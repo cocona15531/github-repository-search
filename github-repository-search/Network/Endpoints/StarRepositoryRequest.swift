@@ -9,6 +9,7 @@ import Foundation
 
 /// 指定リポジトリにスターを付ける API のリクエストを表す構造体。
 struct StarRepositoryRequest: RequestType {
+    typealias Response = NoContent
     var path: String { "/user/starred/\(owner)/\(repo)" }
     let method: HTTPMethod = .put
     let owner: String

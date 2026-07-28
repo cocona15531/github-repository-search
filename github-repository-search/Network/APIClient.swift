@@ -21,8 +21,8 @@ final class APIClient {
 
     /// 任意の API リクエストを送信し、レスポンスをデコードして返す汎用メソッド。
     ///
-    /// エンドポイントごとに処理を書かず、Request / Response 型を渡すだけで呼び出せる。
-    func send<Request, Response>(_ request: Request) async throws(APIError) -> Response where Request: RequestType, Response: ResponseType {
+    /// エンドポイントごとに処理を書かず、Request 型を渡すだけで呼び出せる（Response 型は Request から決まる）。
+    func send<Request: RequestType>(_ request: Request) async throws(APIError) -> Request.Response {
         guard var urlRequest = makeURLRequest(from: request) else { throw .invalidURL }
         // application/vnd.github+json を Accept ヘッダーに設定することが公式ドキュメントで推奨されているので設定する。
         // https://docs.github.com/ja/rest/search/search?apiVersion=2026-03-10#search-repositories
@@ -62,12 +62,12 @@ final class APIClient {
         }
 
         // star 系 API の成功レスポンスは 204（レスポンスボディなし）で返るため、デコードせず NoContent を返す。
-        if httpResponse.statusCode == 204, data.isEmpty, let noContent = NoContent() as? Response {
+        if httpResponse.statusCode == 204, data.isEmpty, let noContent = NoContent() as? Request.Response {
             return noContent
         }
 
         do {
-            return try decoder.decode(Response.self, from: data)
+            return try decoder.decode(Request.Response.self, from: data)
         } catch {
             throw .decode(error)
         }

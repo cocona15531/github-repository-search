@@ -7,8 +7,9 @@
 
 import Foundation
 
-/// API のリクエストを表す型。ResponseType と対になり、Generics の send の型制約として使う。
+/// API のリクエストを表す型。返す Response 型を associatedtype で結びつけ、send の戻り値を型で確定させる。
 protocol RequestType {
+    associatedtype Response: ResponseType
     var path: String { get }
     var method: HTTPMethod { get }
     var queryItems: [URLQueryItem] { get }

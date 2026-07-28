@@ -9,6 +9,7 @@ import Foundation
 
 /// GitHub のリポジトリ検索 API のリクエストを表す構造体。
 struct SearchRepositoriesRequest: RequestType {
+    typealias Response = SearchResponse
     let path = "/search/repositories"
     let method: HTTPMethod = .get
     let query: String
