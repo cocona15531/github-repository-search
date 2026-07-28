@@ -142,7 +142,8 @@ final class RepositorySearchViewController: UIViewController {
 extension RepositorySearchViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
-        guard let query = searchBar.text, !query.isEmpty else { return }
+        let query = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !query.isEmpty else { return }
         viewModel.didSubmitSearch(query: query)
     }
 
