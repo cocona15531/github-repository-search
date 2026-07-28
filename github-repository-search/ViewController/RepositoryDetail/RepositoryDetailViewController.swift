@@ -110,6 +110,7 @@ final class RepositoryDetailViewController: UIViewController {
         let stackView = UIStackView(arrangedSubviews: [starButton, starCountLabel])
         stackView.axis = .horizontal
         stackView.alignment = .center
+        stackView.spacing = 4
         return stackView
     }()
 
