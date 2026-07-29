@@ -117,20 +117,12 @@ final class RepositorySearchViewController: UIViewController {
         }
     }
 
-    /// ViewModelの検索結果を購読し、スナップショットを作り直して一覧に反映する。
-    ///
-    /// 新旧のスナップショットの差分を DiffableDataSource が自動計算するため、
-    /// reloadData() を呼ばずとも変化した行だけがアニメーション付きで更新される。
+    /// ViewModel の状態を購読し、状態ごとに一覧・ローディング・空表示を切り替える。
     private func bindViewModel() {
-        viewModel.$repositories
+        viewModel.$state
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] repositories in
-                guard let self else { return }
-                var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
-                snapshot.appendSections([.main])
-                snapshot.appendItems(repositories, toSection: .main)
-                self.dataSource.apply(snapshot, animatingDifferences: true)
-                self.emptyStateStackView.isHidden = !repositories.isEmpty
+            .sink { [weak self] state in
+                self?.render(state)
             }
             .store(in: &cancellables)
 
@@ -146,6 +138,49 @@ final class RepositorySearchViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    /// ViewState に応じて、ローディング・一覧・空表示を切り替える。
+    private func render(_ state: RepositorySearchViewModel.ViewState) {
+        switch state {
+        case .initial:
+            loadingIndicator.stopAnimating()
+            applyItems([])
+            showEmptyState(title: "検索してみましょう", subtitle: "GitHub内のリポジトリが検索できます")
+        case .loading:
+            loadingIndicator.startAnimating()
+            emptyStateStackView.isHidden = true
+            applyItems([])
+        case .content(let repositories):
+            loadingIndicator.stopAnimating()
+            emptyStateStackView.isHidden = true
+            applyItems(repositories)
+        case .empty(let keyword):
+            loadingIndicator.stopAnimating()
+            applyItems([])
+            showEmptyState(title: "見つかりませんでした", subtitle: "「\(keyword)」に一致するリポジトリはありません")
+        case .error(let message):
+            loadingIndicator.stopAnimating()
+            applyItems([])
+            showEmptyState(title: "エラーが発生しました", subtitle: message)
+        }
+    }
+
+    /// 一覧に表示する行を差分更新する。
+    ///
+    /// 新旧スナップショットの差分を DiffableDataSource が自動計算するため、変化した行だけがアニメーション付きで更新される。
+    private func applyItems(_ items: [RepositoryRowUIModel]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(items, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+
+    /// 中央の空表示にタイトル・サブタイトルを設定して表示する。
+    private func showEmptyState(title: String, subtitle: String) {
+        emptyStateTitleLabel.text = title
+        emptyStateSubtitleLabel.text = subtitle
+        emptyStateStackView.isHidden = false
     }
 }
 
