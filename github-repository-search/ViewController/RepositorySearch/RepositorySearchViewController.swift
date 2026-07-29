@@ -33,7 +33,6 @@ final class RepositorySearchViewController: UIViewController {
 
     private let emptyStateTitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "検索してみましょう"
         label.font = .boldSystemFont(ofSize: 20)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -42,7 +41,6 @@ final class RepositorySearchViewController: UIViewController {
 
     private let emptyStateSubtitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "GitHub内のリポジトリが検索できます"
         label.font = .systemFont(ofSize: 14)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
