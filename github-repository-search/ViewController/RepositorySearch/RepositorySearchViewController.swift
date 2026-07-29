@@ -137,10 +137,10 @@ final class RepositorySearchViewController: UIViewController {
                     self.loadingIndicator.stopAnimating()
                     self.emptyStateStackView.isHidden = true
                     self.applyItems(repositories)
-                case .error(let message):
+                case .error(let error):
                     self.loadingIndicator.stopAnimating()
                     self.applyItems([])
-                    self.showEmptyState(title: "エラーが発生しました", subtitle: message)
+                    self.showEmptyState(title: "エラーが発生しました", subtitle: error.localizedDescription)
                 }
             }
             .store(in: &cancellables)

@@ -16,15 +16,15 @@ final class RepositorySearchViewModel {
     }
 
     /// 検索画面の状態。View はこれを購読して表示を切り替える。
-    enum ViewState: Equatable {
+    enum ViewState {
         /// 検索前。
         case initial
         /// 検索中。
         case loading
         /// 検索結果（0件の場合は空配列）。
         case content([RepositoryRowUIModel])
-        /// 検索失敗時。String はエラーメッセージ。
-        case error(String)
+        /// 検索失敗時。APIError は失敗の内容。
+        case error(APIError)
     }
 
     /// View からの検索文字列の送信口。
@@ -72,7 +72,7 @@ final class RepositorySearchViewModel {
             let repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
             state = .content(repositories)
         } catch {
-            state = .error(error.localizedDescription)
+            state = .error(error)
         }
     }
 }
