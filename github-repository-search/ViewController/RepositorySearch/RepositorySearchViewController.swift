@@ -58,6 +58,12 @@ final class RepositorySearchViewController: UIViewController {
         return stackView
     }()
 
+    private let loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
+    }()
+
     private lazy var dataSource = makeDataSource()
 
     override func viewDidLoad() {
@@ -78,6 +84,7 @@ final class RepositorySearchViewController: UIViewController {
     private func setupViews() {
         view.addSubview(collectionView)
         view.addSubview(emptyStateStackView)
+        view.addSubview(loadingIndicator)
 
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -86,7 +93,10 @@ final class RepositorySearchViewController: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
             emptyStateStackView.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
-            emptyStateStackView.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor)
+            emptyStateStackView.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor),
+
+            loadingIndicator.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor)
         ])
     }
 
