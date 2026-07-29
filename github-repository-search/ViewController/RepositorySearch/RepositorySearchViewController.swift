@@ -33,7 +33,6 @@ final class RepositorySearchViewController: UIViewController {
 
     private let emptyStateTitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "検索してみましょう"
         label.font = .boldSystemFont(ofSize: 20)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -42,7 +41,6 @@ final class RepositorySearchViewController: UIViewController {
 
     private let emptyStateSubtitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "GitHub内のリポジトリが検索できます"
         label.font = .systemFont(ofSize: 14)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
@@ -126,8 +124,8 @@ final class RepositorySearchViewController: UIViewController {
                 switch state {
                 case .initial:
                     self.loadingIndicator.stopAnimating()
-                    self.emptyStateStackView.isHidden = false
                     self.applyItems([])
+                    self.showEmptyState(title: "検索してみましょう", subtitle: "GitHub内のリポジトリが検索できます")
                 case .loading:
                     self.loadingIndicator.startAnimating()
                     self.emptyStateStackView.isHidden = true
@@ -136,6 +134,10 @@ final class RepositorySearchViewController: UIViewController {
                     self.loadingIndicator.stopAnimating()
                     self.emptyStateStackView.isHidden = true
                     self.applyItems(repositories)
+                case .error(let message):
+                    self.loadingIndicator.stopAnimating()
+                    self.applyItems([])
+                    self.showEmptyState(title: "エラーが発生しました", subtitle: message)
                 }
             }
             .store(in: &cancellables)
@@ -162,6 +164,13 @@ final class RepositorySearchViewController: UIViewController {
         snapshot.appendSections([.main])
         snapshot.appendItems(items, toSection: .main)
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+
+    /// 中央の空表示にタイトル・サブタイトルを設定して表示する。
+    private func showEmptyState(title: String, subtitle: String) {
+        emptyStateTitleLabel.text = title
+        emptyStateSubtitleLabel.text = subtitle
+        emptyStateStackView.isHidden = false
     }
 }
 

@@ -23,6 +23,8 @@ final class RepositorySearchViewModel {
         case loading
         /// 検索結果（0件の場合は空配列）。
         case content([RepositoryRowUIModel])
+        /// 検索失敗時。String はエラーメッセージ。
+        case error(String)
     }
 
     /// View からの検索文字列の送信口。
@@ -70,8 +72,7 @@ final class RepositorySearchViewModel {
             let repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
             state = .content(repositories)
         } catch {
-            print(error.localizedDescription)
-            state = .content([])
+            state = .error(error.localizedDescription)
         }
     }
 }
