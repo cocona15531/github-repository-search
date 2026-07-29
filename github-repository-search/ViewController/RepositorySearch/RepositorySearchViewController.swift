@@ -120,7 +120,29 @@ final class RepositorySearchViewController: UIViewController {
         viewModel.$state
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                self?.render(state)
+                guard let self else { return }
+                switch state {
+                case .initial:
+                    self.loadingIndicator.stopAnimating()
+                    self.applyItems([])
+                    self.showEmptyState(title: "検索してみましょう", subtitle: "GitHub内のリポジトリが検索できます")
+                case .loading:
+                    self.loadingIndicator.startAnimating()
+                    self.emptyStateStackView.isHidden = true
+                    self.applyItems([])
+                case .content(let repositories):
+                    self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = true
+                    self.applyItems(repositories)
+                case .empty(let keyword):
+                    self.loadingIndicator.stopAnimating()
+                    self.applyItems([])
+                    self.showEmptyState(title: "見つかりませんでした", subtitle: "「\(keyword)」に一致するリポジトリはありません")
+                case .error(let message):
+                    self.loadingIndicator.stopAnimating()
+                    self.applyItems([])
+                    self.showEmptyState(title: "エラーが発生しました", subtitle: message)
+                }
             }
             .store(in: &cancellables)
 
@@ -136,32 +158,6 @@ final class RepositorySearchViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
-    }
-
-    /// ViewState に応じて、ローディング・一覧・空表示を切り替える。
-    private func render(_ state: RepositorySearchViewModel.ViewState) {
-        switch state {
-        case .initial:
-            loadingIndicator.stopAnimating()
-            applyItems([])
-            showEmptyState(title: "検索してみましょう", subtitle: "GitHub内のリポジトリが検索できます")
-        case .loading:
-            loadingIndicator.startAnimating()
-            emptyStateStackView.isHidden = true
-            applyItems([])
-        case .content(let repositories):
-            loadingIndicator.stopAnimating()
-            emptyStateStackView.isHidden = true
-            applyItems(repositories)
-        case .empty(let keyword):
-            loadingIndicator.stopAnimating()
-            applyItems([])
-            showEmptyState(title: "見つかりませんでした", subtitle: "「\(keyword)」に一致するリポジトリはありません")
-        case .error(let message):
-            loadingIndicator.stopAnimating()
-            applyItems([])
-            showEmptyState(title: "エラーが発生しました", subtitle: message)
-        }
     }
 
     /// 一覧に表示する行を差分更新する。
