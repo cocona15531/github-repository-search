@@ -35,6 +35,7 @@ final class RepositorySearchViewController: UIViewController {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 20)
         label.textAlignment = .center
+        label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -44,6 +45,7 @@ final class RepositorySearchViewController: UIViewController {
         label.font = .systemFont(ofSize: 14)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
+        label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -90,8 +92,9 @@ final class RepositorySearchViewController: UIViewController {
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            emptyStateStackView.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
             emptyStateStackView.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor),
+            emptyStateStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            emptyStateStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
 
             loadingIndicator.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor)
