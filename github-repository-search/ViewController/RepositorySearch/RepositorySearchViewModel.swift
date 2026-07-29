@@ -15,6 +15,20 @@ final class RepositorySearchViewModel {
         case detail(GitHubRepository)
     }
 
+    /// 検索画面の状態。View はこれを購読して表示を切り替える。
+    enum ViewState: Equatable {
+        /// 検索前。
+        case initial
+        /// 検索中。
+        case loading
+        /// 検索結果あり。
+        case content([RepositoryRowUIModel])
+        /// 検索結果が0件。keyword は検索した文字列。
+        case empty(keyword: String)
+        /// 検索に失敗。String はエラーメッセージ。
+        case error(String)
+    }
+
     /// View からの検索文字列の送信口。
     private let searchQuerySubmitted = PassthroughSubject<String, Never>()
     private var cancellables = Set<AnyCancellable>()
