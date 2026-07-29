@@ -117,20 +117,26 @@ final class RepositorySearchViewController: UIViewController {
         }
     }
 
-    /// ViewModelの検索結果を購読し、スナップショットを作り直して一覧に反映する。
-    ///
-    /// 新旧のスナップショットの差分を DiffableDataSource が自動計算するため、
-    /// reloadData() を呼ばずとも変化した行だけがアニメーション付きで更新される。
+    /// ViewModel の状態を購読し、状態ごとに一覧・ローディング・空表示を切り替える。
     private func bindViewModel() {
-        viewModel.$repositories
+        viewModel.$state
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] repositories in
+            .sink { [weak self] state in
                 guard let self else { return }
-                var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
-                snapshot.appendSections([.main])
-                snapshot.appendItems(repositories, toSection: .main)
-                self.dataSource.apply(snapshot, animatingDifferences: true)
-                self.emptyStateStackView.isHidden = !repositories.isEmpty
+                switch state {
+                case .initial:
+                    self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = false
+                    self.applyItems([])
+                case .loading:
+                    self.loadingIndicator.startAnimating()
+                    self.emptyStateStackView.isHidden = true
+                    self.applyItems([])
+                case .content(let repositories):
+                    self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = true
+                    self.applyItems(repositories)
+                }
             }
             .store(in: &cancellables)
 
@@ -146,6 +152,16 @@ final class RepositorySearchViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    /// 一覧に表示する行を差分更新する。
+    ///
+    /// 新旧スナップショットの差分を DiffableDataSource が自動計算するため、変化した行だけがアニメーション付きで更新される。
+    private func applyItems(_ items: [RepositoryRowUIModel]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(items, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
 }
 
