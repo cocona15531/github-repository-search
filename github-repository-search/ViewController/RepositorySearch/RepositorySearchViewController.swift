@@ -129,8 +129,8 @@ final class RepositorySearchViewController: UIViewController {
                 switch state {
                 case .initial:
                     self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = false
                     self.applyItems([])
-                    self.showEmptyState(title: "検索してみましょう", subtitle: "GitHub内のリポジトリが検索できます")
                 case .loading:
                     self.loadingIndicator.startAnimating()
                     self.emptyStateStackView.isHidden = true
@@ -141,8 +141,9 @@ final class RepositorySearchViewController: UIViewController {
                     self.applyItems(repositories)
                 case .error(let message):
                     self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = true
                     self.applyItems([])
-                    self.showEmptyState(title: "エラーが発生しました", subtitle: message)
+                    self.showAlert(message: message)
                 }
             }
             .store(in: &cancellables)
@@ -171,11 +172,11 @@ final class RepositorySearchViewController: UIViewController {
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 
-    /// 中央の空表示にタイトル・サブタイトルを設定して表示する。
-    private func showEmptyState(title: String, subtitle: String) {
-        emptyStateTitleLabel.text = title
-        emptyStateSubtitleLabel.text = subtitle
-        emptyStateStackView.isHidden = false
+    /// 検索失敗をアラートでユーザーに知らせる。
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "エラーが発生しました", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
