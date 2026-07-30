@@ -18,11 +18,11 @@ final class RepositoryDetailViewModel {
     @Published private(set) var isStarButtonEnabled = false
 
     private let gitHubRepository: GitHubRepository
-    private let repository: any RepositoryDetailRepositoryProtocol
+    private let repository: any StarRepositoryProtocol
 
     init(
         gitHubRepository: GitHubRepository,
-        repository: any RepositoryDetailRepositoryProtocol = RepositoryDetailRepository()
+        repository: any StarRepositoryProtocol = StarRepository()
     ) {
         self.gitHubRepository = gitHubRepository
         self.repository = repository
