@@ -18,7 +18,7 @@ final class RepositorySearchViewModel {
     /// View からの検索文字列の送信口。
     private let searchQuerySubmitted = PassthroughSubject<String, Never>()
     private var cancellables = Set<AnyCancellable>()
-    private let repository: any SearchRepositoryProtocol
+    private let repository: any RepositorySearchRepositoryProtocol
     private var fetchedRepositories: [GitHubRepository] = []
 
     /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
@@ -26,7 +26,7 @@ final class RepositorySearchViewModel {
     /// 画面遷移のトリガー。セル選択時に遷移先が入る。
     @Published private(set) var router: Router?
 
-    init(repository: any SearchRepositoryProtocol = SearchRepository()) {
+    init(repository: any RepositorySearchRepositoryProtocol = RepositorySearchRepository()) {
         self.repository = repository
 
         searchQuerySubmitted
