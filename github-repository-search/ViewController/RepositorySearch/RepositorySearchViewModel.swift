@@ -75,4 +75,13 @@ final class RepositorySearchViewModel {
             state = .error(error.localizedDescription)
         }
     }
+
+    /// アラートの閉じるボタンをタップした時に呼ばれる。
+    func didDismissAlert() {
+        if fetchedRepositories.isEmpty {
+            state = .initial
+        } else {
+            state = .content(fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) })
+        }
+    }
 }

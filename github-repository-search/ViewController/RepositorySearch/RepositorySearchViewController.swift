@@ -175,7 +175,9 @@ final class RepositorySearchViewController: UIViewController {
     /// 検索失敗をアラートでユーザーに知らせる。
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "エラーが発生しました", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
+            self?.viewModel.didDismissAlert()
+        }))
         present(alert, animated: true)
     }
 }
