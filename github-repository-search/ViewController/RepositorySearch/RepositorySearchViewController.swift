@@ -36,6 +36,7 @@ final class RepositorySearchViewController: UIViewController {
         label.text = "検索してみましょう"
         label.font = .boldSystemFont(ofSize: 20)
         label.textAlignment = .center
+        label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -46,6 +47,7 @@ final class RepositorySearchViewController: UIViewController {
         label.font = .systemFont(ofSize: 14)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
+        label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -56,6 +58,12 @@ final class RepositorySearchViewController: UIViewController {
         stackView.spacing = 8
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
+    }()
+
+    private let loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
     }()
 
     private lazy var dataSource = makeDataSource()
@@ -78,6 +86,7 @@ final class RepositorySearchViewController: UIViewController {
     private func setupViews() {
         view.addSubview(collectionView)
         view.addSubview(emptyStateStackView)
+        view.addSubview(loadingIndicator)
 
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -85,8 +94,12 @@ final class RepositorySearchViewController: UIViewController {
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            emptyStateStackView.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
-            emptyStateStackView.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor)
+            emptyStateStackView.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor),
+            emptyStateStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            emptyStateStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+
+            loadingIndicator.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor)
         ])
     }
 
@@ -107,20 +120,31 @@ final class RepositorySearchViewController: UIViewController {
         }
     }
 
-    /// ViewModelの検索結果を購読し、スナップショットを作り直して一覧に反映する。
-    ///
-    /// 新旧のスナップショットの差分を DiffableDataSource が自動計算するため、
-    /// reloadData() を呼ばずとも変化した行だけがアニメーション付きで更新される。
+    /// ViewModel の状態を購読し、状態ごとに一覧・ローディング・空表示を切り替える。
     private func bindViewModel() {
-        viewModel.$repositories
+        viewModel.$state
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] repositories in
+            .sink { [weak self] state in
                 guard let self else { return }
-                var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
-                snapshot.appendSections([.main])
-                snapshot.appendItems(repositories, toSection: .main)
-                self.dataSource.apply(snapshot, animatingDifferences: true)
-                self.emptyStateStackView.isHidden = !repositories.isEmpty
+                switch state {
+                case .initial:
+                    self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = false
+                    self.applyItems([])
+                case .loading:
+                    self.loadingIndicator.startAnimating()
+                    self.emptyStateStackView.isHidden = true
+                    self.applyItems([])
+                case .content(let repositories):
+                    self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = true
+                    self.applyItems(repositories)
+                case .error(let message):
+                    self.loadingIndicator.stopAnimating()
+                    self.emptyStateStackView.isHidden = false
+                    self.applyItems([])
+                    self.showAlert(message: message)
+                }
             }
             .store(in: &cancellables)
 
@@ -136,6 +160,25 @@ final class RepositorySearchViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    /// 一覧に表示する行を差分更新する。
+    ///
+    /// 新旧スナップショットの差分を DiffableDataSource が自動計算するため、変化した行だけがアニメーション付きで更新される。
+    private func applyItems(_ items: [RepositoryRowUIModel]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(items, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+
+    /// 検索失敗をアラートでユーザーに知らせる。
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "エラーが発生しました", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
+            self?.viewModel.didDismissAlert()
+        }))
+        present(alert, animated: true)
     }
 }
 

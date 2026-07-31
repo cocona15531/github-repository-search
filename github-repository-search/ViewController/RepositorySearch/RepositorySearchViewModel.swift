@@ -15,14 +15,26 @@ final class RepositorySearchViewModel {
         case detail(GitHubRepository)
     }
 
+    /// 検索画面の状態。View はこれを購読して表示を切り替える。
+    enum ViewState: Equatable {
+        /// 検索前。
+        case initial
+        /// 検索中。
+        case loading
+        /// 検索結果（0件の場合は空配列）。
+        case content([RepositoryRowUIModel])
+        /// 検索失敗時。String はエラーメッセージ。
+        case error(String)
+    }
+
     /// View からの検索文字列の送信口。
     private let searchQuerySubmitted = PassthroughSubject<String, Never>()
     private var cancellables = Set<AnyCancellable>()
     private let repository: any RepositorySearchRepositoryProtocol
     private var fetchedRepositories: [GitHubRepository] = []
 
-    /// 検索結果のリポジトリ一覧。View はこれを購読して表示に使う。
-    @Published private(set) var repositories: [RepositoryRowUIModel] = []
+    /// 検索画面の状態。View はこれを購読して表示に使う。
+    @Published private(set) var state: ViewState = .initial
     /// 画面遷移のトリガー。セル選択時に遷移先が入る。
     @Published private(set) var router: Router?
 
@@ -44,7 +56,7 @@ final class RepositorySearchViewModel {
 
     func didClearSearch() {
         fetchedRepositories = []
-        repositories = []
+        state = .initial
     }
 
     /// セルが選択されたことをこの ViewModel に伝える。遷移先（Router）の決定をここで行う。
@@ -54,11 +66,22 @@ final class RepositorySearchViewModel {
     }
 
     private func search(query: String) async {
+        state = .loading
         do {
             fetchedRepositories = try await repository.searchRepositories(query: query)
-            repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
+            let repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
+            state = .content(repositories)
         } catch {
-            print(error.localizedDescription)
+            state = .error(error.localizedDescription)
+        }
+    }
+
+    /// アラートの閉じるボタンをタップした時に呼ばれる。
+    func didDismissAlert() {
+        if fetchedRepositories.isEmpty {
+            state = .initial
+        } else {
+            state = .content(fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) })
         }
     }
 }
