@@ -141,7 +141,7 @@ final class RepositorySearchViewController: UIViewController {
                     self.applyItems(repositories)
                 case .error(let message):
                     self.loadingIndicator.stopAnimating()
-                    self.emptyStateStackView.isHidden = true
+                    self.emptyStateStackView.isHidden = false
                     self.applyItems([])
                     self.showAlert(message: message)
                 }
