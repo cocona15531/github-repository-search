@@ -57,19 +57,225 @@ MVVM の利点は、ViewModel が持つ表示状態と View をバインドす�
 
 ## 実装する上で意識したことの紹介
 
-#### 表示状態の一元化（ViewState）
+### 表示状態の一元化（ViewState）
 
-#### 画面遷移の責務分離（Router）
+ViewModel が現在の状態を1つだけ保持し、処理の進行に応じて状態を切り替える `ViewState` を用いて実装しました。View はその状態を見て表示を決めます。
 
-#### データ取得の抽象化（Repository）
+```swift
+/// 検索画面の状態。View はこれを購読して表示を切り替える。
+enum ViewState: Equatable {
+    /// 検索前。
+    case initial
+    /// 検索中。
+    case loading
+    /// 検索結果（0件の場合は空配列）。
+    case content([RepositoryRowUIModel])
+    /// 検索失敗時。String はエラーメッセージ。
+    case error(String)
+}
+```
 
-#### モデル変換の集約（Translator）
+ViewModel は処理結果に応じて `ViewState` を変更し、View は個々の UI 部品をその都度操作するのではなく、状態ごとの表示処理をまとめて記述します。これにより、状態の変更が必ず表示に反映され、状態ごとの表示内容も1か所にまとまります。
 
-#### 遷移先の初期化と依存注入の集約（Provider）
+```swift
+switch state {
+case .initial:
+    self.loadingIndicator.stopAnimating()
+    self.emptyStateStackView.isHidden = false
+    self.applyItems([])
+case .loading:
+    self.loadingIndicator.startAnimating()
+    self.emptyStateStackView.isHidden = true
+    self.applyItems([])
+case .content(let repositories):
+    self.loadingIndicator.stopAnimating()
+    self.emptyStateStackView.isHidden = true
+    self.applyItems(repositories)
+case .error(let message):
+    self.loadingIndicator.stopAnimating()
+    self.emptyStateStackView.isHidden = false
+    self.applyItems([])
+    self.showAlert(message: message)
+}
+```
+
+### 画面遷移の責務分離（Router）
+
+「どの画面に行くか」は画面の状態の一部と考え、ViewModel が `Router` として公開し、View は購読して画面遷移を行います。`Router` enum を見ればこの画面から行ける遷移先がすべて分かります。仮に今後遷移先を追加した場合、View 側の `switch` が非網羅になり、コンパイラが対応漏れを検出してくれます。
+
+```swift
+// ViewModel: 遷移先を決める
+enum Router: Equatable {
+    case detail(GitHubRepository)
+}
+
+func didSelectRepository(id: Int) {
+    guard let repository = fetchedRepositories.first(where: { $0.id == id }) else { return }
+    router = .detail(repository)
+}
+```
+
+```swift
+// View: 遷移を実行する
+viewModel.$router
+    .compactMap { $0 }
+    .receive(on: DispatchQueue.main)
+    .sink { [weak self] router in
+        switch router {
+        case .detail(let repository):
+            let vc = RepositoryDetailViewControllerProvider.build(repository: repository)
+            self?.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    .store(in: &cancellables)
+```
+
+### データ取得の抽象化（Repository）
+
+ViewModel が参照するのはプロトコルだけに留め、「データがどこから来たか」を知らないようにしました。その結果、テスト時にはプロトコルをモックに差し替えるだけで、ViewModel のテストは「状態遷移が正しいか」だけに集中できるようになります。
+
+```swift
+protocol RepositorySearchRepositoryProtocol {
+    func searchRepositories(query: String) async throws(APIError) -> [GitHubRepository]
+}
+
+final class RepositorySearchRepository: RepositorySearchRepositoryProtocol {
+    private let apiClient: any RepositorySearchServiceProtocol
+
+    init(apiClient: any RepositorySearchServiceProtocol = APIClient()) {
+        self.apiClient = apiClient
+    }
+
+    func searchRepositories(query: String) async throws(APIError) -> [GitHubRepository] {
+        let response = try await apiClient.searchRepositories(SearchRepositoriesRequest(query: query))
+        return response.repositories.map { RepositoryTranslator.translate(from: $0) }
+    }
+}
+```
+
+また、`APIClient` 全体に依存しないよう、使うメソッドだけを切り出したプロトコルに `APIClient` を extension で準拠させています。その結果、Repository のプロトコルと同様にモックへ差し替えるだけで、通信なしで Repository 単体をテストできます。
+
+```swift
+protocol RepositorySearchServiceProtocol {
+    func searchRepositories(_ request: SearchRepositoriesRequest) async throws(APIError) -> SearchResponse
+}
+
+extension APIClient: RepositorySearchServiceProtocol {
+    func searchRepositories(_ request: SearchRepositoriesRequest) async throws(APIError) -> SearchResponse {
+        try await send(request)
+    }
+}
+```
+
+### モデル変換の集約（Translator）
+
+モデルを **API レスポンス → DataModel → UIModel** の3段に分け、変換をそれぞれ Translator で行いました。その結果、整形や `nil` の穴埋めを View や ViewModel で行わず、View は整形済みの値をそのまま表示するだけでよくなります。
+
+```swift
+// API レスポンス → DataModel
+enum RepositoryTranslator {
+    static func translate(from response: RepositoryResponse) -> GitHubRepository { ... }
+}
+
+// DataModel → 一覧用の UIModel
+enum RepositorySearchUIModelTranslator {
+    static func translate(from repository: GitHubRepository) -> RepositoryRowUIModel {
+        RepositoryRowUIModel(
+            ...
+            description: repository.description ?? "説明はありません",
+            starCountText: "★ \(formattedStarCount(repository.stargazersCount))",
+            ...
+        )
+    }
+
+    /// スター数を、1万以上なら「X.X万」の形式に整形する。1万未満はそのままの数字にする。
+    private static func formattedStarCount(_ count: Int) -> String {
+        guard count >= 10_000 else { return "\(count)" }
+        return String(format: "%.1f万", Double(count) / 10_000)
+    }
+}
+```
+
+### 遷移先の初期化と依存注入の集約（Provider）
+
+詳細画面は ViewModel を `init` で受け取る形にし、初期化と依存注入を Provider にまとめました。呼び出し側は `build` だけを知れば済むので、ViewModel の依存が増えたり、ViewController の `init` が変わっても、直すのは `build` の中だけに留めることができます。
+
+```swift
+enum RepositoryDetailViewControllerProvider {
+    @MainActor
+    static func build(repository: GitHubRepository) -> RepositoryDetailViewController {
+        let viewModel = RepositoryDetailViewModel(gitHubRepository: repository)
+        return RepositoryDetailViewController(viewModel: viewModel)
+    }
+}
+```
+
+```swift
+// View
+let vc = RepositoryDetailViewControllerProvider.build(repository: repository)
+```
 
 ### APIClient の汎用化（Generics + associatedtype）
 
+エンドポイントごとにメソッドを増やさず、`RequestType` を渡すだけで呼べる汎用の `send` を1つ用意しました。
+
+```swift
+func send<Request: RequestType>(_ request: Request) async throws(APIError) -> Request.Response
+```
+
+`associatedtype` で Response を結びつけているため、**戻り値の型が Request 側で確定**します。
+
+```swift
+/// API のリクエストを表す型。返す Response 型を associatedtype で結びつけ、send の戻り値を型で確定させる。
+protocol RequestType {
+    associatedtype Response: ResponseType
+    var path: String { get }
+    var method: HTTPMethod { get }
+    var queryItems: [URLQueryItem] { get }
+}
+```
+
+エンドポイントの追加時は `RequestType` に準拠したリクエストを用意するだけでよく、`APIClient` に手を入れずに汎用的に使えます。
+
+```swift
+struct SearchRepositoriesRequest: RequestType {
+    typealias Response = SearchResponse
+    let path = "/search/repositories"
+    let method: HTTPMethod = .get
+    let query: String
+    var queryItems: [URLQueryItem] {
+        [URLQueryItem(name: "q", value: query)]
+    }
+}
+```
+
 ### 一覧画面の描画（CompositionalLayout + DiffableDataSource）
+
+一覧は `UICollectionViewFlowLayout` と `UICollectionViewDataSource` の組み合わせではなく、CompositionalLayout と DiffableDataSource で実装しました。レイアウトには `UICollectionLayoutListConfiguration` によるリスト構成を使っています（詳細は「[UICollectionLayoutListConfiguration を用いて設定画面風に実装](#uicollectionlayoutlistconfiguration-を用いて設定画面風に実装)」に記載）。
+
+データソース側は、`numberOfItemsInSection` や `cellForItemAt` を実装して「配列の状態を UICollectionView に説明する」のではなく、**表示したい状態そのもの**をスナップショットとして渡します。
+
+```swift
+/// 一覧に表示する行を差分更新する。
+///
+/// 新旧スナップショットの差分を DiffableDataSource が自動計算するため、変化した行だけがアニメーション付きで更新される。
+private func applyItems(_ items: [RepositoryRowUIModel]) {
+    var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
+    snapshot.appendSections([.main])
+    snapshot.appendItems(items, toSection: .main)
+    dataSource.apply(snapshot, animatingDifferences: true)
+}
+```
+
+新旧の差分は DiffableDataSource が計算するため、`reloadData()` を呼ばずに変化した行だけが更新されます。これは ViewModel が `ViewState` として「今表示すべき状態」を公開している構成と相性が良く、View は受け取った状態を `applyItems` に渡すだけで済みます。配列の管理とデータソースの更新を別々に整合させる必要がありません。
+
+また `CellRegistration` を使うことで、文字列の reuse identifier や `as!` による型変換なしに、セルとモデルの型を結びつけられます。
+
+```swift
+let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { cell, _, repository in
+    cell.configure(with: repository)
+}
+```
 
 ## 新しく学んだこと
 
