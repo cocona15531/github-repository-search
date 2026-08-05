@@ -281,6 +281,31 @@ let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, Reposit
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
 
+リストの最初と最後のセルだけ角丸になる、iOS の設定アプリのようなリストを作りたかったため、`UICollectionLayoutListConfiguration` の `insetGrouped` を使いました。
+
+```swift
+/// 先頭・末尾の角丸やセルの区切り線が標準で提供される insetGrouped スタイルのリストレイアウトを組み立てる。
+private func makeLayout() -> UICollectionViewCompositionalLayout {
+    let configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
+    return UICollectionViewCompositionalLayout.list(using: configuration)
+}
+```
+
+自分で実装するなら、セルの位置がリストの先頭・末尾・中間のどれかを判定し、`layer.maskedCorners` で角を出し分け、さらに区切り線を敷く処理が必要になります。`insetGrouped` を指定するだけで、角丸・左右のインセット・セル間の区切り線がすべて標準で提供されることを学びました。
+
 ### iOS 26 での検索バーの配置（preferredSearchBarPlacement）
+
+`UISearchController` を `navigationItem.searchController` に載せる実装にしましたが、iOS 26 では検索バーが既定で**画面下部**に配置されます。課題のイメージ図は上部に検索バーがある形だったため、配置を明示的に指定しました。
+
+```swift
+navigationItem.searchController = searchController
+// iOS 26 では検索バーの配置がデフォルトで画面下部になるため、
+// OS間で見た目が変わらないようナビゲーションバーを画面上部に固定する。
+if #available(iOS 26.0, *) {
+    navigationItem.preferredSearchBarPlacement = .stacked
+}
+```
+
+`.stacked` はナビゲーションタイトルの下に検索バーを積む配置です。同じコードでも OS のバージョンによって既定の見た目が変わることがあり、**新しい OS の既定値を確認して、意図した配置を明示する必要がある**ことを学びました。
 
 ## 今後の課題
