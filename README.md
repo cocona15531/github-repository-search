@@ -14,27 +14,19 @@
 
 ## 実装する上で意識したことの紹介
 
-### MVVM + Repository アーキテクチャでの実装
+#### 表示状態の一元化（ViewState）
 
-#### ViewState
+#### 画面遷移の責務分離（Router）
 
-#### Router
+#### データ取得の抽象化（Repository）
 
-#### Repository
+#### モデル変換の集約（Translator）
 
-#### Translator
-
-#### Provider
+#### 遷移先の初期化と依存注入の集約（Provider）
 
 ### APIClient の汎用化（Generics + associatedtype）
 
 ### 一覧画面の描画（CompositionalLayout + DiffableDataSource）
-
-### ライフサイクル
-
-### 参照
-
-### エラー設計
 
 ## 新しく学んだこと
 
