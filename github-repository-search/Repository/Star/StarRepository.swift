@@ -1,5 +1,5 @@
 //
-//  RepositoryDetailRepository.swift
+//  StarRepository.swift
 //  github-repository-search
 //
 //  Created by Issei Ueda on 2026/07/27.
@@ -8,17 +8,17 @@
 import Foundation
 
 /// リポジトリのスター操作に関するプロトコル。
-protocol RepositoryDetailRepositoryProtocol {
+protocol StarRepositoryProtocol {
     func isStarred(owner: String, name: String) async throws(APIError) -> Bool
     func star(owner: String, name: String) async throws(APIError)
     func unstar(owner: String, name: String) async throws(APIError)
 }
 
 /// リポジトリのスター操作に関するリポジトリ。
-final class RepositoryDetailRepository: RepositoryDetailRepositoryProtocol {
-    private let apiClient: any RepositoryDetailServiceProtocol
+final class StarRepository: StarRepositoryProtocol {
+    private let apiClient: any StarServiceProtocol
 
-    init(apiClient: any RepositoryDetailServiceProtocol = APIClient(accessToken: Secrets.gitHubAccessToken)) {
+    init(apiClient: any StarServiceProtocol = APIClient(accessToken: Secrets.gitHubAccessToken)) {
         self.apiClient = apiClient
     }
 
