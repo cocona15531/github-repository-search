@@ -19,6 +19,15 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
 
 ## 技術スタック
 
+| 項目 | 内容 |
+| --- | --- |
+| UI | UIKit（Storyboard / xib を使わずコードベースで実装、レイアウトは NSLayoutConstraint） |
+| アーキテクチャ | MVVM + Repository |
+| データフロー | Combine |
+| 非同期処理 | async / await |
+| 通信 | 自作の APIClient（URLSession。通信ライブラリは使用していない） |
+| ライブラリ | SDWebImage（オーナーアイコンの非同期読み込みとキャッシュのみ） |
+
 ## セットアップ
 
 ## アーキテクチャ
