@@ -30,6 +30,19 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
 
 ## セットアップ
 
+動作環境は Xcode 26 / iOS 26.2 以上です。依存ライブラリ（SDWebImage）は Swift Package Manager で管理しているため、プロジェクトを開くと自動で解決されます。
+
+スター系の API は認証が必要なため、GitHub の Personal Access Token を用意し、`github-repository-search/Secrets.swift` を作成してください。スコープは `public_repo`（または `repo`）です。
+
+```swift
+enum Secrets {
+    /// star API の認証に使う GitHub の Personal Access Token。
+    static let gitHubAccessToken = "＜自分の Personal Access Token＞"
+}
+```
+
+このファイルはトークンを含むため `.gitignore` に登録しており、リポジトリにはコミットされません。トークンを設定しなくても検索・一覧・詳細表示は動作します（検索系 API は未認証で呼べるため）。スター状態の取得・付与・解除のみ失敗します。
+
 ## アーキテクチャ
 <img width="4000" height="2240" alt="アプリアーキテクチャ統合図" src="https://github.com/user-attachments/assets/1925e3a8-d9f9-4bd0-bd1d-b6840ecc9406" />
 
