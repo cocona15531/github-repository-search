@@ -1,4 +1,7 @@
 # github-repository-search
+<img width="4000" height="2240" alt="画面フロー図" src="https://github.com/user-attachments/assets/3cf1b4ed-15f6-437d-adb8-fd7609817cff" />
+
+
 
 |レポジトリ一覧画面|レポジトリ詳細画面|
 |---|---|
@@ -11,6 +14,8 @@
 ## セットアップ
 
 ## アーキテクチャ
+<img width="4000" height="2240" alt="アプリアーキテクチャ統合図" src="https://github.com/user-attachments/assets/1925e3a8-d9f9-4bd0-bd1d-b6840ecc9406" />
+
 
 ## 実装する上で意識したことの紹介
 
