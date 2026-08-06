@@ -2,9 +2,9 @@
 
 GitHub の REST API を使って公開リポジトリを検索・閲覧できる iOS アプリです。入力した文字列でリポジトリを検索して一覧で表示し、選んだリポジトリの詳細を確認して、自分の GitHub アカウントでスターを付け外しできます。
 
-<img width="4000" height="2240" alt="画面フロー図" src="https://github.com/user-attachments/assets/3cf1b4ed-15f6-437d-adb8-fd7609817cff" />
+<img width="4000" height="2240" alt="画面フロー図" src="https://github.com/user-attachments/assets/e900aa51-fee5-4e4d-8d00-ebed8833475b" />
 
-
+<br>
 
 |レポジトリ一覧画面|レポジトリ詳細画面|
 |---|---|
