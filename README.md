@@ -15,6 +15,10 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
 - [技術スタック](#技術スタック)
 - [セットアップ](#セットアップ)
 - [アーキテクチャ](#アーキテクチャ)
+  - [MVVM + Repository の構成](#mvvm--repository-の構成)
+  - [MVP で書いた場合との比較](#mvp-で書いた場合との比較)
+    - [MVVM のメリット（MVP と比べて）](#mvvm-のメリットmvp-と比べて)
+    - [MVVM のデメリット（MVP と比べて）](#mvvm-のデメリットmvp-と比べて)
 - [実装する上で意識したことの紹介](#実装する上で意識したことの紹介)
   - [ライフサイクル](#ライフサイクル)
   - [Combine](#combine)
@@ -62,14 +66,137 @@ enum Secrets {
 
 <img width="4000" height="2240" alt="アプリアーキテクチャ統合図" src="https://github.com/user-attachments/assets/1925e3a8-d9f9-4bd0-bd1d-b6840ecc9406" />
 
+今回の実践課題のアプリでは、MVVM アーキテクチャに加えて Repository を導入する構成で実装しました。
 
-今回の実践課題のアプリでは、MVVMアーキテクチャに加えて Repository を導入する構成で実装しました。
+### MVVM + Repository の構成
 
-MVVM の利点は、ViewModel が持つ表示状態と View をバインドすることで、状態の変更に応じて UI が自動的に更新される点です。これにより更新漏れや表示の矛盾を防ぎやすく、画面の挙動を理解・テストしやすくなります。
+MVVM は View / ViewModel / Model に分け、ViewModel が画面の表示状態を持ち、View はそれを購読して描画する構成です。ViewModel は View を参照しないため、依存は View → ViewModel の一方向になります。
 
-これまでの開発では MVP に慣れていましたが、MVP は ViewController からロジックを分離しやすい一方で、画面が複雑になると Presenter が肥大化し、View と Presenter が相互に参照し合うことで結合度が高くなりがちです。この点を踏まえ今回は採用しませんでした。
+ただし MVVM をそのまま採用すると、ViewModel が画面の状態管理や表示ロジックに加えて API 通信やキャッシュの処理まで抱え込み、肥大化してしまいます。そこで Repository を導入し、データ取得に関する処理を分離しました。その結果、ViewModel は画面状態と表示ロジックの管理に専念でき、テスト時には Repository をモックへ差し替えられる構成になっています。テスト自体は今回実装できていないため、今後の課題として取り組む予定です。
 
-ただし、MVVM をそのまま採用すると、ViewModel が画面の状態管理や表示ロジックに加えて API 通信・DB・キャッシュなどの処理まで抱え込み、肥大化してしまいます。そこで Repository を導入し、これらのデータ取得に関する処理を分離しました。その結果、ViewModel は画面状態と表示ロジックの管理に専念でき、テスト時には Repository をモックへ差し替えられる構成になっています。テスト自体は今回実装できていないため、今後の課題として取り組む予定です。
+### MVP で書いた場合との比較
+
+これまでの開発では MVP を採用したプロジェクトが中心で、MVP での書き方に慣れていました。その書き方では、Presenter が用途ごとの Subject を公開し、View がそれぞれを購読する形にしていました。Presenter が View への参照を持たない点は MVVM と同じで、違うのは公開する単位が「用途ごと」か「画面の状態ひとつ」かです。今回の検索処理を MVP の書き方に置き換えると、次のようになります。
+
+```swift
+// MVP で書いた場合
+@MainActor protocol RepositorySearchPresenterProtocol {
+    var isLoading: CurrentValueSubject<Bool, Never> { get }
+    var repositories: CurrentValueSubject<[RepositoryRowUIModel], Never> { get }
+    var alertMessage: CurrentValueSubject<String?, Never> { get }
+    var onGoToDetail: PassthroughSubject<GitHubRepository, Never> { get }
+
+    func didSubmitSearch(query: String)
+    func didSelectRepository(id: Int)
+}
+
+final class RepositorySearchPresenter: RepositorySearchPresenterProtocol {
+    let isLoading = CurrentValueSubject<Bool, Never>(false)
+    let repositories = CurrentValueSubject<[RepositoryRowUIModel], Never>([])
+    let alertMessage = CurrentValueSubject<String?, Never>(nil)
+    let onGoToDetail = PassthroughSubject<GitHubRepository, Never>()
+
+    func didSubmitSearch(query: String) {
+        isLoading.send(true)
+        Task {
+            do {
+                fetchedRepositories = try await repository.searchRepositories(query: query)
+                repositories.send(fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) })
+            } catch {
+                alertMessage.send(error.localizedDescription)
+            }
+            isLoading.send(false)
+        }
+    }
+}
+```
+
+View 側は Subject ごとに購読を張り、表示の組み合わせを自分で判断します。
+
+```swift
+// MVP: View が購読を複数張り、組み合わせも View 側で決める
+presenter.isLoading
+    .sink { [weak self] isLoading in
+        isLoading ? self?.loadingIndicator.startAnimating() : self?.loadingIndicator.stopAnimating()
+    }
+    .store(in: &cancellables)
+
+presenter.repositories
+    .sink { [weak self] repositories in
+        self?.applyItems(repositories)
+        self?.emptyStateStackView.isHidden = !repositories.isEmpty
+    }
+    .store(in: &cancellables)
+```
+
+今回の MVVM では、これを状態1つにまとめました。
+
+```swift
+// MVVM: 状態を1つ公開する
+enum ViewState: Equatable {
+    case initial
+    case loading
+    case content([RepositoryRowUIModel])
+    case error(String)
+}
+
+private func search(query: String) async {
+    state = .loading
+    do {
+        fetchedRepositories = try await repository.searchRepositories(query: query)
+        state = .content(fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) })
+    } catch {
+        state = .error(error.localizedDescription)
+    }
+}
+```
+
+View 側は購読1本で、状態ごとに表示を決めます。
+
+```swift
+// MVVM: View は購読1本で、状態ごとに描画する
+viewModel.$state
+    .receive(on: DispatchQueue.main)
+    .sink { [weak self] state in
+        guard let self else { return }
+        switch state {
+        case .initial:
+            self.loadingIndicator.stopAnimating()
+            self.emptyStateStackView.isHidden = false
+            self.applyItems([])
+        case .loading:
+            self.loadingIndicator.startAnimating()
+            self.emptyStateStackView.isHidden = true
+            self.applyItems([])
+        case .content(let repositories):
+            ...
+        case .error(let message):
+            ...
+        }
+    }
+    .store(in: &cancellables)
+```
+
+#### MVVM のメリット（MVP と比べて）
+
+MVP では自分で気をつけていた部分が構造で担保されるようになり、記述量も減りました。
+
+1つは、表示の組み合わせを ViewModel が決められる点です。MVP では「ローディング中は空表示を隠す」「一覧が空なら空表示を出す」といった判断が View に散りますが、状態を1つにまとめたことで、View は状態ごとに描画するだけになりました。
+
+また、区別したい状態を型で分けられるようになりました。MVP では `repositories` が空配列のときに「未検索」なのか「検索結果が0件」なのかを判別できず、フラグを追加することになります。`.initial` と `.content([])` を別のケースにしたことで、この2つを型として表現できました。
+
+さらに、宣言と購読のコード量を削減できました。MVP では出力の種類ごとに Subject を宣言し、View 側にも `receive(on:)` / `sink` / `store(in:)` の購読を1本ずつ書く必要がありました。MVVM では状態1つの宣言と購読1本に収まるため、画面の出力が増えてもこの部分は増えません。
+
+#### MVVM のデメリット（MVP と比べて）
+
+一方で、MVP のほうが書きやすいと感じた点もあります。
+
+まず、状態の一部だけを更新できません。詳細画面でスター数だけ変えたい場合も、`updateUIModel()` で `uiModel` を作り直しています。MVP なら該当の Subject に `send` するだけで済んでいた部分です。
+
+また、View 側の分岐の記述量は増えます。状態のケース数 × 表示要素の数だけ設定を書くことになり、ケース毎に値の設定漏れが起きやすくなります。
+
+そして、表示状態が少ない画面ではオーバースペックになります。取りうる状態が2つ程度なら、Subject を1つ置くほうが手軽だと感じます。
+
 
 ## 実装する上で意識したことの紹介
 
