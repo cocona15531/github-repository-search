@@ -10,6 +10,28 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
 |---|---|
 |<video src=https://github.com/user-attachments/assets/4806662b-80e7-4b59-bb66-13633b0e7a46>|<video src=https://github.com/user-attachments/assets/445555d8-6c68-4316-a8d1-29b373d7ca87>|
 
+## 目次
+
+- [技術スタック](#技術スタック)
+- [セットアップ](#セットアップ)
+- [アーキテクチャ](#アーキテクチャ)
+- [実装する上で意識したことの紹介](#実装する上で意識したことの紹介)
+  - [ライフサイクル](#ライフサイクル)
+  - [Combine](#combine)
+  - [参照](#参照)
+  - [エラー設計](#エラー設計)
+  - [APIClient](#apiclient)
+  - [ViewState](#viewstate)
+  - [Router](#router)
+  - [Repository](#repository)
+  - [Translator](#translator)
+  - [Provider](#provider)
+- [新しく学んだこと](#新しく学んだこと)
+  - [UICollectionLayoutListConfiguration を用いて設定画面風に実装](#uicollectionlayoutlistconfiguration-を用いて設定画面風に実装)
+  - [iOS 26 での検索バーの配置（preferredSearchBarPlacement）](#ios-26-での検索バーの配置preferredsearchbarplacement)
+  - [AI が出力したコードのセルフレビュー](#ai-が出力したコードのセルフレビュー)
+- [感想・振り返り](#感想振り返り)
+
 ## 技術スタック
 
 | 項目 | 内容 |
