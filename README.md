@@ -421,20 +421,7 @@ func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
 }
 ```
 
-画面側では、検索の失敗をアラートで知らせ、閉じたときに直前の状態へ戻すようにしました。アラートを出すのは View の役割ですが、どの状態に戻すかの判断は ViewModel が持ちます。
-
-```swift
-/// アラートの閉じるボタンをタップした時に呼ばれる。
-func didDismissAlert() {
-    if fetchedRepositories.isEmpty {
-        state = .initial
-    } else {
-        state = .content(fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) })
-    }
-}
-```
-
-なお、詳細画面のスター操作の失敗は現時点ではログ出力のみで、ユーザーには通知していません。
+検索の失敗をアラートで知らせるよう実装しましたが、詳細画面のスター操作の失敗は現時点ではログ出力のみで、ユーザーには通知していません。
 
 
 ## 新しく学んだこと
