@@ -308,6 +308,53 @@ func didAppear() {
 }
 ```
 
+### Combine
+
+ViewModel が持つ表示状態を `@Published` で公開し、View はそれを購読するだけで表示が更新される形にしました。View 側に「どのタイミングで表示を更新するか」を書く必要がなく、ViewModel が状態を変えればそのまま描画に反映されます。
+
+```swift
+// ViewModel: 状態を公開する
+@Published private(set) var state: ViewState = .initial
+@Published private(set) var router: Router?
+```
+
+```swift
+// View: 購読して表示を更新する
+viewModel.$state
+    .receive(on: DispatchQueue.main)
+    .sink { [weak self] state in
+        // 状態ごとに表示を切り替える
+    }
+    .store(in: &cancellables)
+```
+
+`@Published` は購読した時点で現在の値が流れてくるため、初期表示のために別の処理を書く必要がありません。購読を `viewDidLoad` で一度設定するだけで、検索前・検索中・結果・エラーのすべてが同じ経路で描画されます。
+
+一方、View から ViewModel への入力はメソッド呼び出しで受け、検索の実行は `PassthroughSubject` に流して購読側で処理しています。`@Published` や `CurrentValueSubject` は初期値が必須で、購読を始めた時点でその値が流れます。検索の実行で使うと、まだ何も入力していないのに初期値で検索が走ってしまいます。そのため入力側は、値を保持せず `send` されたときだけ流れる `PassthroughSubject` にしました。
+
+```swift
+/// View からの検索文字列の送信口。
+private let searchQuerySubmitted = PassthroughSubject<String, Never>()
+
+init(repository: any RepositorySearchRepositoryProtocol = RepositorySearchRepository()) {
+    self.repository = repository
+
+    searchQuerySubmitted
+        .sink { [weak self] query in
+            guard let self else { return }
+            Task { await self.search(query: query) }
+        }
+        .store(in: &cancellables)
+}
+
+/// 検索が実行されたことをこの ViewModel に伝える。
+func didSubmitSearch(query: String) {
+    searchQuerySubmitted.send(query)
+}
+```
+
+また、購読側では `receive(on: DispatchQueue.main)` を明示し、UI の更新がメインスレッドで行われることをコード上で読み取れるようにしています。
+
 ## 新しく学んだこと
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
