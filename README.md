@@ -288,7 +288,11 @@ private func makeLayout() -> UICollectionViewCompositionalLayout {
 
 ### iOS 26 での検索バーの配置（preferredSearchBarPlacement）
 
-`UISearchController` を `navigationItem.searchController` に載せる実装にしましたが、iOS 26 では検索バーが既定で画面下部に配置されます。課題のイメージ図は上部に検索バーがある形だったため、配置を明示的に指定しました。
+|iOS 18 以前|iOS 26（.stacked 指定前）|iOS 26（.stacked 指定後）|
+|---|---|---|
+|<img width="1170" height="2532" alt="Simulator Screenshot - iPhone 16e - 2026-07-17 at 20 09 44" src="https://github.com/user-attachments/assets/db2bc3ef-aeb7-46e0-9e69-87771478c6f7" />|<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 Pro - 2026-07-21 at 09 52 58" src="https://github.com/user-attachments/assets/cfe7a713-8d78-43c4-baa8-e306d84db2f2" />|<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 Pro - 2026-08-06 at 13 03 14" src="https://github.com/user-attachments/assets/b540093b-ba07-4f24-9240-1565bc318f02" />|
+
+`UISearchController` を `navigationItem.searchController` に載せる実装にしましたが、iOS 18 以前では検索バーがデフォルトで画面上部に配置され、iOS 26 では画面下部に配置されます。OS の違いで検索バーの位置が異なる実装は望ましくないと考えたため、上部に固定するよう配置を明示的に指定しました。
 
 ```swift
 navigationItem.searchController = searchController
