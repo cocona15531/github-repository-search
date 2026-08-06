@@ -355,6 +355,34 @@ func didSubmitSearch(query: String) {
 
 また、購読側では `receive(on: DispatchQueue.main)` を明示し、UI の更新がメインスレッドで行われることをコード上で読み取れるようにしています。
 
+### 参照
+
+ViewModel は View を参照しない構成にしました。delegate も持たないため View → ViewModel の一方向の依存になり、両者の間に循環参照が生まれる経路がありません。
+
+そのうえで、`sink` のクロージャには `[weak self]` を付けています。クロージャは購読が生きている間、内部の参照を保持し続けるためです。ViewModel では購読を自分の `cancellables` に保持しているため、クロージャで `self` を強参照すると循環参照になり解放されません。ViewController 側も同じ構造なので、購読がある間 ViewController が解放されなくなります。
+
+```swift
+// ViewModel: 購読を自分の cancellables に保持するため [weak self] を付ける
+searchQuerySubmitted
+    .sink { [weak self] query in
+        guard let self else { return }
+        Task { await self.search(query: query) }
+    }
+    .store(in: &cancellables)
+```
+
+```swift
+// ViewController: 同じ構造なので、こちらも [weak self] を付ける
+viewModel.$state
+    .receive(on: DispatchQueue.main)
+    .sink { [weak self] state in
+        guard let self else { return }
+        // 状態ごとに表示を切り替える
+    }
+    .store(in: &cancellables)
+```
+
+
 ## 新しく学んだこと
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
