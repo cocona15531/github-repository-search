@@ -383,6 +383,60 @@ viewModel.$state
 ```
 
 
+### エラー設計
+
+API のエラーは `APIError` として型で表現し、ケース名でどこで何が起きたのかが分かるようにしました。GitHub のドキュメントで意味が定義されているステータスコードは、専用のケースに割り当てています。
+
+```swift
+enum APIError: Error {
+    case invalidURL
+    case invalidResponse
+    /// GitHub APIが422を返した場合のエラー。バリデーションエラーとスパム防止によるリクエスト拒否の両方を意味しうる。
+    case requestRejected
+    /// GitHub APIのレートリミットを超過した場合のエラー（403 / 429）。
+    case rateLimitExceeded
+    /// GitHubのサービスが一時的に利用できない場合のエラー（503 Service Unavailable）。
+    case serviceUnavailable
+    /// 上記以外でステータスコードが 2xx 以外だった場合のエラー。
+    case unacceptable(statusCode: Int)
+    case urlSession(Error)
+    case decode(Error)
+}
+```
+
+`throws(APIError)` を使うことで、この層から投げられるエラーが `APIError` に限られることをシグネチャで示しています。ユーザーに見せる文言は `LocalizedError` の `errorDescription` に集約したため、ViewModel は `error.localizedDescription` を状態に載せるだけで済みます。
+
+一方で、API の仕様としてエラーが返る箇所は Repository で変換しました。スター状態の確認は「スター済み = 204 / 未スター = 404」が返るため、404 を `false` に変換し、ステータスコードの知識を呼び出し側に持ち込ませないようにしています。
+
+```swift
+/// スター状態を取得する。204（スター済み）は true、404（未スター）は false に変換する。
+func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
+    do {
+        _ = try await apiClient.fetchStarStatus(GetStarStatusRequest(owner: owner, repo: name))
+        return true
+    } catch {
+        if case .unacceptable(statusCode: 404) = error { return false }
+        throw error
+    }
+}
+```
+
+画面側では、検索の失敗をアラートで知らせ、閉じたときに直前の状態へ戻すようにしました。アラートを出すのは View の役割ですが、どの状態に戻すかの判断は ViewModel が持ちます。
+
+```swift
+/// アラートの閉じるボタンをタップした時に呼ばれる。
+func didDismissAlert() {
+    if fetchedRepositories.isEmpty {
+        state = .initial
+    } else {
+        state = .content(fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) })
+    }
+}
+```
+
+なお、詳細画面のスター操作の失敗は現時点ではログ出力のみで、ユーザーには通知していません。
+
+
 ## 新しく学んだこと
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
