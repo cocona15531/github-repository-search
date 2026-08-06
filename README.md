@@ -162,7 +162,7 @@ extension APIClient: RepositorySearchServiceProtocol {
 
 ### モデル変換の集約（Translator）
 
-モデルを **API レスポンス → DataModel → UIModel** の3段に分け、変換をそれぞれ Translator で行いました。その結果、整形や `nil` の穴埋めを View や ViewModel で行わず、View は整形済みの値をそのまま表示するだけでよくなります。
+モデルを API レスポンス → DataModel → UIModel の3段に分け、変換をそれぞれ Translator で行いました。その結果、整形や `nil` の穴埋めを View や ViewModel で行わず、View は整形済みの値をそのまま表示するだけでよくなります。
 
 ```swift
 // API レスポンス → DataModel
@@ -216,7 +216,7 @@ let vc = RepositoryDetailViewControllerProvider.build(repository: repository)
 func send<Request: RequestType>(_ request: Request) async throws(APIError) -> Request.Response
 ```
 
-`associatedtype` で Response を結びつけているため、**戻り値の型が Request 側で確定**します。
+`associatedtype` で Response を結びつけているため、戻り値の型が Request 側で確定します。
 
 ```swift
 /// API のリクエストを表す型。返す Response 型を associatedtype で結びつけ、send の戻り値を型で確定させる。
@@ -246,7 +246,7 @@ struct SearchRepositoriesRequest: RequestType {
 
 一覧は `UICollectionViewFlowLayout` と `UICollectionViewDataSource` の組み合わせではなく、CompositionalLayout と DiffableDataSource で実装しました。レイアウトには `UICollectionLayoutListConfiguration` によるリスト構成を使っています（詳細は「[UICollectionLayoutListConfiguration を用いて設定画面風に実装](#uicollectionlayoutlistconfiguration-を用いて設定画面風に実装)」に記載）。
 
-データソース側は、`numberOfItemsInSection` や `cellForItemAt` を実装して「配列の状態を UICollectionView に説明する」のではなく、**表示したい状態そのもの**をスナップショットとして渡します。
+データソース側は、`numberOfItemsInSection` や `cellForItemAt` を実装して「配列の状態を UICollectionView に説明する」のではなく、表示したい状態そのものをスナップショットとして渡します。
 
 ```swift
 /// 一覧に表示する行を差分更新する。
@@ -288,7 +288,7 @@ private func makeLayout() -> UICollectionViewCompositionalLayout {
 
 ### iOS 26 での検索バーの配置（preferredSearchBarPlacement）
 
-`UISearchController` を `navigationItem.searchController` に載せる実装にしましたが、iOS 26 では検索バーが既定で**画面下部**に配置されます。課題のイメージ図は上部に検索バーがある形だったため、配置を明示的に指定しました。
+`UISearchController` を `navigationItem.searchController` に載せる実装にしましたが、iOS 26 では検索バーが既定で画面下部に配置されます。課題のイメージ図は上部に検索バーがある形だったため、配置を明示的に指定しました。
 
 ```swift
 navigationItem.searchController = searchController
@@ -299,13 +299,13 @@ if #available(iOS 26.0, *) {
 }
 ```
 
-`.stacked` はナビゲーションタイトルの下に検索バーを積む配置です。同じコードでも OS のバージョンによって既定の見た目が変わることがあり、**新しい OS の既定値を確認して、意図した配置を明示する必要がある**ことを学びました。
+`.stacked` はナビゲーションタイトルの下に検索バーを積む配置です。同じコードでも OS のバージョンによって既定の見た目が変わることがあり、新しい OS の既定値を確認して、意図した配置を明示する必要があることを学びました。
 
 ### AI が出力したコードのセルフレビュー
 
 着手当初は、AI が出力したコードの安全性を十分にレビューしないままレビュー依頼を出してしまい、多くの指摘をいただくことがありました。そこで以降は、差分を一つずつ目視で確認し、その実装が本当に正しいのかを調査したうえで依頼する、というプロセスをセルフレビューに組み込みました。さらに複数の AI ツールのレビュー機能を活用することで、自分では気づけない観点を補いました。
 
-その結果、指摘されるコメントの数を減らすことができ、**AI が出力したコードをそのまま信頼せず、意図どおりの実装になっているかを自分で確認したうえで依頼する必要がある**ことを学びました。
+その結果、指摘されるコメントの数を減らすことができ、AI が出力したコードをそのまま信頼せず、意図どおりの実装になっているかを自分で確認したうえで依頼する必要があることを学びました。
 
 ## 感想・振り返り
 
