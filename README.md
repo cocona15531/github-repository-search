@@ -270,6 +270,44 @@ let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, Reposit
 }
 ```
 
+### ライフサイクル
+
+Storyboard を使わないため、画面の生成は `SceneDelegate` で組み立てています。詳細画面は `init(viewModel:)` のみを公開し、`required init?(coder:)` は `fatalError()` にして、コードベース以外からの生成を防ぎました。
+
+購読の開始は `viewDidLoad` で1回だけ行いました。`viewWillAppear` のように複数回呼ばれるタイミングで購読すると二重購読になるためです。購読は `cancellables` にまとめて保持しているので、ViewController の解放と同時に止まります。
+
+```swift
+override func viewDidLoad() {
+    super.viewDidLoad()
+    view.backgroundColor = .systemBackground
+    navigationItem.largeTitleDisplayMode = .never
+    setupViews()
+    bindViewModel()
+    viewModel.didAppear()
+}
+```
+
+詳細画面のスター状態の取得は「画面が表示されたこと」を起点にしたかったため、View から `didAppear()` を呼ぶ形にしました。取得が終わるまでは `isStarButtonEnabled` を `false` にして、状態が確定する前のタップを防いでいます。
+
+```swift
+/// 画面表示時に呼ぶ。スター状態を取得してボタンと表示数に反映する。
+func didAppear() {
+    Task {
+        do {
+            let starred = try await repository.isStarred(
+                owner: gitHubRepository.owner.login,
+                name: gitHubRepository.name
+            )
+            isStarred = starred
+            updateUIModel()
+        } catch {
+            print(error.localizedDescription)
+        }
+        isStarButtonEnabled = true
+    }
+}
+```
+
 ## 新しく学んだこと
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
