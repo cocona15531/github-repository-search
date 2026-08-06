@@ -242,34 +242,6 @@ struct SearchRepositoriesRequest: RequestType {
 }
 ```
 
-### 一覧画面の描画（CompositionalLayout + DiffableDataSource）
-
-一覧は `UICollectionViewFlowLayout` と `UICollectionViewDataSource` の組み合わせではなく、CompositionalLayout と DiffableDataSource で実装しました。レイアウトには `UICollectionLayoutListConfiguration` によるリスト構成を使っています（詳細は「[UICollectionLayoutListConfiguration を用いて設定画面風に実装](#uicollectionlayoutlistconfiguration-を用いて設定画面風に実装)」に記載）。
-
-データソース側は、`numberOfItemsInSection` や `cellForItemAt` を実装して「配列の状態を UICollectionView に説明する」のではなく、表示したい状態そのものをスナップショットとして渡します。
-
-```swift
-/// 一覧に表示する行を差分更新する。
-///
-/// 新旧スナップショットの差分を DiffableDataSource が自動計算するため、変化した行だけがアニメーション付きで更新される。
-private func applyItems(_ items: [RepositoryRowUIModel]) {
-    var snapshot = NSDiffableDataSourceSnapshot<Section, RepositoryRowUIModel>()
-    snapshot.appendSections([.main])
-    snapshot.appendItems(items, toSection: .main)
-    dataSource.apply(snapshot, animatingDifferences: true)
-}
-```
-
-新旧の差分は DiffableDataSource が計算するため、`reloadData()` を呼ばずに変化した行だけが更新されます。これは ViewModel が `ViewState` として「今表示すべき状態」を公開している構成と相性が良く、View は受け取った状態を `applyItems` に渡すだけで済みます。配列の管理とデータソースの更新を別々に整合させる必要がありません。
-
-また `CellRegistration` を使うことで、文字列の reuse identifier や `as!` による型変換なしに、セルとモデルの型を結びつけられます。
-
-```swift
-let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { cell, _, repository in
-    cell.configure(with: repository)
-}
-```
-
 ### ライフサイクル
 
 Storyboard を使わないため、画面の生成は `SceneDelegate` で組み立てています。詳細画面は `init(viewModel:)` のみを公開し、`required init?(coder:)` は `fatalError()` にして、コードベース以外からの生成を防ぎました。
@@ -439,6 +411,8 @@ private func makeLayout() -> UICollectionViewCompositionalLayout {
 ```
 
 自分で実装するなら、セルの位置がリストの先頭・末尾・中間のどれかを判定し、`layer.maskedCorners` で角を出し分け、さらに区切り線を敷く処理が必要になります。`insetGrouped` を指定するだけで、角丸・左右のインセット・セル間の区切り線がすべて標準で提供されることを学びました。
+
+データソースには DiffableDataSource を使い、`cellForItemAt` を実装する代わりに、表示したい状態をスナップショットとして渡す形にしました。差分は DiffableDataSource が計算するため、`reloadData()` を呼ばずに変化した行だけが更新されることも学びました。
 
 ### iOS 26 での検索バーの配置（preferredSearchBarPlacement）
 
