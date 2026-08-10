@@ -24,6 +24,7 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [Combine](#combine)
   - [参照](#参照)
   - [エラー設計](#エラー設計)
+  - [DRY 原則](#dry-原則)
   - [APIClient](#apiclient)
   - [ViewState](#viewstate)
   - [Router](#router)
@@ -352,6 +353,55 @@ func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
 ```
 
 検索の失敗をアラートで知らせるよう実装しましたが、詳細画面のスター操作の失敗は現時点ではログ出力のみで、ユーザーには通知していません。
+
+
+### DRY 原則
+
+このアプリでは、DRY 原則を意識して開発を行いました。DRY（Don't Repeat Yourself）とは、同じ知識を複数の場所に持たないという原則です。同じコードを書かないことではなく、同じ知識が散らばって片方だけ修正される状態を避けることが目的だと理解しています。今回は、変更したときに触る場所が1か所に収まるよう意識しました。
+
+通信の共通処理は `send` に集約しました。ヘッダーの設定・ステータスコードの判定・デコードがここにまとまっているため、今後リクエストヘッダーを追加するときはこの1箇所を変更するだけで済みます。
+
+```swift
+// APIClient.send の中。すべてのリクエストに共通する処理をここに集約している
+urlRequest.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+urlRequest.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
+if let accessToken {
+    urlRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+}
+```
+
+エラーの文言は `LocalizedError` の `errorDescription` に集約しました。ViewModel は `error.localizedDescription` を状態に載せるだけなので、文言を変えるときに触るのは `APIError` だけです。
+
+```swift
+extension APIError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .rateLimitExceeded:
+            return "アクセスが集中しています。時間をおいて再度お試しください。"
+        case .serviceUnavailable:
+            return "GitHub のサービスが一時的に利用できません。時間をおいて再度お試しください。"
+        ...
+        }
+    }
+}
+```
+
+同じスタイルのラベルの生成も1か所にまとめました。詳細画面のフォーク数・Issue 数・更新日・トピックは同じ見た目なので、生成を `makeSubLabel()` に集約しています。フォントや行数を変えるときに4箇所を直す必要がありません。
+
+```swift
+private let forkCountLabel = RepositoryDetailViewController.makeSubLabel()
+private let issueCountLabel = RepositoryDetailViewController.makeSubLabel()
+private let updatedAtLabel = RepositoryDetailViewController.makeSubLabel()
+private let topicsLabel = RepositoryDetailViewController.makeSubLabel()
+
+/// fork数・issue数・更新日・topics 用の、少し小さめ（14pt）のサブ情報ラベルを生成する。
+private static func makeSubLabel() -> UILabel {
+    let label = UILabel()
+    label.font = .systemFont(ofSize: 14, weight: .medium)
+    label.numberOfLines = 0
+    return label
+}
+```
 
 
 ### APIClient
