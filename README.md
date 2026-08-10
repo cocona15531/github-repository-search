@@ -24,6 +24,9 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [Combine](#combine)
   - [参照](#参照)
   - [エラー設計](#エラー設計)
+  - [疎結合](#疎結合)
+  - [抽象化](#抽象化)
+  - [凝集度](#凝集度)
   - [APIClient](#apiclient)
   - [ViewState](#viewstate)
   - [Router](#router)
@@ -352,6 +355,70 @@ func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
 ```
 
 検索の失敗をアラートで知らせるよう実装しましたが、詳細画面のスター操作の失敗は現時点ではログ出力のみで、ユーザーには通知していません。
+
+
+### 疎結合
+
+疎結合とは、モジュール同士の依存が弱い状態のことです。判断の目安は「片方を変えたときに、もう片方も変える必要があるか」です。
+
+モデルを層ごとに分けたのは、層の間の結合を弱めるためです。View が受け取るのは表示用の UIModel だけで、`RepositoryCell` には `GitHubRepository` が1度も出てきません。そのため API のレスポンス形状が変わっても、影響は `RepositoryResponse` と `RepositoryTranslator` に閉じ、View まで波及しません。
+
+```swift
+// セルが受け取るのは表示用の UIModel だけ
+func configure(with repository: RepositoryRowUIModel) {
+    nameLabel.text = repository.name
+    descriptionLabel.text = repository.description
+    starCountLabel.text = repository.starCountText
+    ...
+}
+```
+
+
+### 抽象化
+
+抽象化とは、詳細を隠して本質だけを見せることです。使う側が知らなくていいことを見せないようにします。
+
+ViewModel から見て何が隠れているかを整理すると、次のようになります。
+
+| ViewModel が知らないこと | 隠している場所 |
+| --- | --- |
+| HTTP のステータスコード | `StarRepository`（404 を `false` に変換） |
+| JSON のキー名（`stargazers_count` など） | `RepositoryResponse` と `RepositoryTranslator` |
+| エンドポイントのパスや HTTP メソッド | `RequestType` に準拠した各構造体 |
+| レスポンスボディがない成功（204） | `NoContent` という型 |
+
+たとえばスター状態の確認は「スター済み = 204 / 未スター = 404」が返りますが、この知識は Repository で吸収しています。
+
+```swift
+/// スター状態を取得する。204（スター済み）は true、404（未スター）は false に変換する。
+func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
+    do {
+        _ = try await apiClient.fetchStarStatus(GetStarStatusRequest(owner: owner, repo: name))
+        return true
+    } catch {
+        if case .unacceptable(statusCode: 404) = error { return false }
+        throw error
+    }
+}
+```
+
+結果として ViewModel が扱うのは `[GitHubRepository]` と `Bool` だけになり、通信の詳細が画面側に現れません。
+
+### 凝集度
+
+凝集度とは、1つの型やファイルの中身が同じ目的に向かってまとまっている度合いです。「このファイルは一言で説明できるか」が目安で、高いほうが良いとされています。
+
+ディレクトリは画面単位で切り、その画面に関わるものをまとめました。複数の画面で共有するもの（`Model` / `Network` / `Repository`）だけを上位に置いています。
+
+```
+ViewController/RepositorySearch/
+├── RepositorySearchViewController.swift
+├── RepositorySearchViewModel.swift
+├── Model/RepositoryRowUIModel.swift
+├── Translator/RepositorySearchUIModelTranslator.swift
+└── Component/RepositoryCell.swift, LanguageColor.swift
+```
+
 
 
 ### APIClient
