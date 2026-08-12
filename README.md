@@ -35,6 +35,7 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [Translator](#translator)
   - [Provider](#provider)
 - [新しく学んだこと](#新しく学んだこと)
+  - [UI が更新されるまでの順序](#ui-が更新されるまでの順序)
   - [UICollectionLayoutListConfiguration を用いて設定画面風に実装](#uicollectionlayoutlistconfiguration-を用いて設定画面風に実装)
   - [iOS 26 での検索バーの配置（preferredSearchBarPlacement）](#ios-26-での検索バーの配置preferredsearchbarplacement)
   - [AI が出力したコードのセルフレビュー](#ai-が出力したコードのセルフレビュー)
@@ -670,6 +671,100 @@ let vc = RepositoryDetailViewControllerProvider.build(repository: repository)
 ```
 
 ## 新しく学んだこと
+
+### UI が更新されるまでの順序
+
+一覧のセルに表示されるリポジトリ名のラベルを例に、データが届いてから画面に表示されるまでを順に追います。
+
+**1. ViewModel が状態を更新する**
+
+```swift
+fetchedRepositories = try await repository.searchRepositories(query: query)
+let repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
+state = .content(repositories)
+```
+
+**2. View が購読で受け取り、スナップショットを適用する**
+
+```swift
+case .content(let repositories):
+    self.loadingIndicator.stopAnimating()
+    self.emptyStateStackView.isHidden = true
+    self.applyItems(repositories)
+```
+
+**3. UICollectionView がセルを用意し、`configure(with:)` が呼ばれる**
+
+セルの生成・再利用は `CellRegistration` のハンドラで行われ、その中で `configure(with:)` を呼んでいます。
+
+```swift
+// RepositorySearchViewController
+let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { cell, _, repository in
+    cell.configure(with: repository)
+}
+```
+
+```swift
+// RepositoryCell
+func configure(with repository: RepositoryRowUIModel) {
+    nameLabel.text = repository.name
+    descriptionLabel.text = repository.description
+    ownerNameLabel.text = repository.ownerLogin
+    starCountLabel.text = repository.starCountText
+    ...
+}
+```
+
+**4. この時点では、まだ画面は変わらない**
+
+文字列を代入すると、ラベルの `intrinsicContentSize`（内容から決まる大きさ）が変わります。このとき UIKit は内部で `setNeedsLayout()` を呼び、そのビューに「レイアウトが必要」というフラグを立てるだけで、計算は行いません。
+
+`configure(with:)` では名前・説明・オーナー名・スター数と4つの値を代入していますが、代入のたびに計算するのは無駄になるためです。
+
+**5. 次の画面更新のタイミングで、まとめて計算・描画され、画面に表示される**
+
+アプリはイベント（タップや通信の完了など）を処理したあと、画面を描き直します。このとき UIKit は、`setNeedsLayout()` が呼ばれたビューと、その影響を受ける親のビューだけを集めて処理します。値が変わっていないビューは対象にならないため、画面全体を作り直すことはありません。
+
+計算は「大きさを決める → 位置を決める → 描く」の順に進みます。
+
+**① 制約から大きさを計算する**
+
+ラベルは自分の文字列から必要な大きさ（`intrinsicContentSize`）を返します。UIKit は末端のビュー（ラベルや画像など、それ以上子を持たないビュー）から大きさを確定させ、それを積み上げて親の大きさを決めます。
+
+セルの階層は次のようになっており、末端のラベルの高さが決まらないと `UIStackView` の高さが決まらず、それが決まらないとセル全体の高さも決まりません。そのため下（末端）から上（親）へ進みます。
+
+```swift
+// RepositoryCell の View 構造（コード内のコメントより）
+// contentView(W: superView.frame.W, H: 内容に応じて可変（AutoLayoutの自己サイズ計算）)
+//   ┣ nameLabel(W: contentView.frame.W - 32, H: textのsizeに合わせる)
+//   ┣ descriptionLabel(W: contentView.frame.W - 32, H: 最大2行分のtextのsizeに合わせる)
+//   ┣ ownerPillView(UIStackView) (W: 内容に応じた幅, H: 28)
+//   ┃     ┣ avatarImageView(W: 20, H: 20)
+//   ┃     ┗ ownerNameLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+//   ┗ bottomRowStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+//         ┣ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+//         ┗ languageStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+//               ┣ languageDotView(W: 8, H: 8)
+//               ┗ languageLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+```
+
+**② 位置を決める**
+
+①で計算した結果を、各ビューの `frame` に反映します。`frame` は、そのビューが親の座標系のどこに、どれだけの大きさで置かれるかを表す値です。
+
+```
+// contentView の左上を (0, 0) としたときの例
+nameLabel.frame = (x: 16, y: 16, width: 318, height: 20)
+```
+
+Auto Layout を使う場合、`frame` は自分で設定しません。各ビューに `translatesAutoresizingMaskIntoConstraints = false` を指定して「`frame` ではなく制約でレイアウトする」と宣言しており、制約から計算された結果がここに入ります。
+
+親の枠が決まらないと子をどこに置くか決められないため、上（親）から下（子）へ進みます。ここで `layoutSubviews()` が呼ばれます。
+
+**③ 描画を行い、画面に表示される**
+
+`frame` が確定した状態で描画が行われ、画面に表示されます。見た目が変わっていないビューは描き直されません。
+
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
 
