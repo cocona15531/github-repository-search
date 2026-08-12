@@ -407,19 +407,26 @@ func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
 
 ### 凝集度
 
-凝集度とは、1つの型やファイルの中身が同じ目的に向かってまとまっている度合いです。「このファイルは一言で説明できるか」が目安で、高いほうが良いとされています。
+凝集度とは、クラスやモジュールの中の機能が、どれだけ関連性の高い目的にまとまっているかを示す指標です。異なる関心事が混在している状態を低凝集、1つの責務に集中している状態を高凝集と呼び、高凝集なほど変更しやすく、再利用もしやすくなります。
 
-ディレクトリは画面単位で切り、その画面に関わるものをまとめました。複数の画面で共有するもの（`Model` / `Network` / `Repository`）だけを上位に置いています。
+型ごとの責務は1つに絞りました。たとえば `LanguageColor` は「言語名から色を返す」ことだけを担っており、それ以外の関心事を持っていません。
 
+```swift
+/// 主要言語ごとの色分け（GitHubの言語カラーに準拠した簡易マッピング）。
+enum LanguageColor {
+    static func color(for language: String) -> UIColor {
+        colors[language] ?? .systemGray3
+    }
+
+    private static let colors: [String: UIColor] = [
+        "Swift": color(hex: 0xF05138),
+        "Python": color(hex: 0x3572A5),
+        ...
+    ]
+}
 ```
-ViewController/RepositorySearch/
-├── RepositorySearchViewController.swift
-├── RepositorySearchViewModel.swift
-├── Model/RepositoryRowUIModel.swift
-├── Translator/RepositorySearchUIModelTranslator.swift
-└── Component/RepositoryCell.swift, LanguageColor.swift
-```
 
+この型を読むときに把握する必要があるのは、言語と色の対応だけです。色の追加や変更が必要になったときも、影響はこの型の中に収まります。
 
 
 ### DRY 原則
