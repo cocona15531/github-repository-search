@@ -27,6 +27,7 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [疎結合](#疎結合)
   - [抽象化](#抽象化)
   - [凝集度](#凝集度)
+  - [DRY 原則](#dry-原則)
   - [APIClient](#apiclient)
   - [ViewState](#viewstate)
   - [Router](#router)
@@ -420,6 +421,52 @@ ViewController/RepositorySearch/
 ```
 
 
+
+### DRY 原則
+
+このアプリでは、DRY 原則を意識して開発を行いました。DRY（Don't Repeat Yourself）とは、同じ知識を複数の場所に持たないという原則です。同じコードを書かないことではなく、同じ知識が散らばって片方だけ修正される状態を避けることが目的だと理解しています。今回は、変更したときに触る場所が1か所に収まるよう意識しました。
+
+まず、通信処理をエンドポイントごとに書かないよう、ジェネリクスで `send` を1つにまとめました。`RequestType` に準拠した型を受け取る形にしているため、エンドポイントが増えても通信処理は増えません。
+
+ジェネリクスを使わない場合、検索・スター状態の確認・スターの付与・解除といったエンドポイントごとにメソッドを用意し、そのたびに同じ通信処理を書くことになります。
+
+```swift
+// リクエストの型を受け取り、戻り値の型も Request 側から決まる
+func send<Request: RequestType>(_ request: Request) async throws(APIError) -> Request.Response
+```
+
+エラーの文言は `LocalizedError` の `errorDescription` に集約しました。ViewModel は `error.localizedDescription` を状態に載せるだけなので、文言を変えるときに触るのは `APIError` だけです。
+
+```swift
+extension APIError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .rateLimitExceeded:
+            return "アクセスが集中しています。時間をおいて再度お試しください。"
+        case .serviceUnavailable:
+            return "GitHub のサービスが一時的に利用できません。時間をおいて再度お試しください。"
+        ...
+        }
+    }
+}
+```
+
+同じスタイルのラベルの生成も1か所にまとめました。詳細画面のフォーク数・Issue 数・更新日・トピックは同じ見た目なので、生成を `makeSubLabel()` に集約しています。フォントや行数を変えるときに4箇所を直す必要がありません。
+
+```swift
+private let forkCountLabel = RepositoryDetailViewController.makeSubLabel()
+private let issueCountLabel = RepositoryDetailViewController.makeSubLabel()
+private let updatedAtLabel = RepositoryDetailViewController.makeSubLabel()
+private let topicsLabel = RepositoryDetailViewController.makeSubLabel()
+
+/// fork数・issue数・更新日・topics 用の、少し小さめ（14pt）のサブ情報ラベルを生成する。
+private static func makeSubLabel() -> UILabel {
+    let label = UILabel()
+    label.font = .systemFont(ofSize: 14, weight: .medium)
+    label.numberOfLines = 0
+    return label
+}
+```
 
 ### APIClient
 
