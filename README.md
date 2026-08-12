@@ -361,22 +361,11 @@ func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
 
 まず、通信処理をエンドポイントごとに書かないよう、ジェネリクスで `send` を1つにまとめました。`RequestType` に準拠した型を受け取る形にしているため、エンドポイントが増えても通信処理は増えません。
 
+ジェネリクスを使わない場合、検索・スター状態の確認・スターの付与・解除といったエンドポイントごとにメソッドを用意し、そのたびに同じ通信処理を書くことになります。
+
 ```swift
 // リクエストの型を受け取り、戻り値の型も Request 側から決まる
 func send<Request: RequestType>(_ request: Request) async throws(APIError) -> Request.Response
-```
-
-ジェネリクスを使わない場合、検索・スター状態の確認・スターの付与・解除といったエンドポイントごとにメソッドを用意し、そのたびに同じ通信処理を書くことになります。
-
-その `send` の中には、すべてのリクエストに共通する処理を集約しました。ヘッダーの設定・ステータスコードの判定・デコードがここにまとまっているため、今後リクエストヘッダーを追加するときはこの1箇所を変更するだけで済みます。
-
-```swift
-// APIClient.send の中。すべてのリクエストに共通する処理をここに集約している
-urlRequest.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-urlRequest.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
-if let accessToken {
-    urlRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-}
 ```
 
 エラーの文言は `LocalizedError` の `errorDescription` に集約しました。ViewModel は `error.localizedDescription` を状態に載せるだけなので、文言を変えるときに触るのは `APIError` だけです。
