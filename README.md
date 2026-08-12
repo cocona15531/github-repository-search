@@ -362,7 +362,9 @@ func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
 
 疎結合とは、モジュール同士の依存が弱い状態のことです。判断の目安は「片方を変えたときに、もう片方も変える必要があるか」です。
 
-モデルを層ごとに分けたのは、層の間の結合を弱めるためです。View が受け取るのは表示用の UIModel だけで、`RepositoryCell` には `GitHubRepository` が1度も出てきません。そのため API のレスポンス形状が変わっても、影響は `RepositoryResponse` と `RepositoryTranslator` に閉じ、View まで波及しません。
+モデルは、層ごとに3つに分けました。API のレスポンスをそのまま受け取る `RepositoryResponse`、アプリ内でリポジトリを表す `GitHubRepository`、画面にそのまま表示できる `RepositoryRowUIModel` です。層をまたぐときは Translator で変換しています。
+
+その結果、View が受け取るのは表示用の UIModel だけになり、`RepositoryCell` には `GitHubRepository` が1度も出てきません。API のレスポンス形状が変わっても、影響は `RepositoryResponse` と `RepositoryTranslator` に閉じ、View まで波及しません。
 
 ```swift
 // セルが受け取るのは表示用の UIModel だけ
