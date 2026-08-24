@@ -385,27 +385,32 @@ ViewModel から見て何が隠れているかを整理すると、次のよう�
 
 | ViewModel が知らないこと | 隠している場所 |
 | --- | --- |
-| HTTP のステータスコード | `StarRepository`（404 を `false` に変換） |
+| データの取得方法 | `RepositorySearchRepositoryProtocol` |
 | JSON のキー名（`stargazers_count` など） | `RepositoryResponse` と `RepositoryTranslator` |
 | エンドポイントのパスや HTTP メソッド | `RequestType` に準拠した各構造体 |
 | レスポンスボディがない成功（204） | `NoContent` という型 |
 
-たとえばスター状態の確認は「スター済み = 204 / 未スター = 404」が返りますが、この知識は Repository で吸収しています。
+たとえば ViewModel が保持しているのは、Repository の実装ではなくプロトコルです。
 
 ```swift
-/// スター状態を取得する。204（スター済み）は true、404（未スター）は false に変換する。
-func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
-    do {
-        _ = try await apiClient.fetchStarStatus(GetStarStatusRequest(owner: owner, repo: name))
-        return true
-    } catch {
-        if case .unacceptable(statusCode: 404) = error { return false }
-        throw error
-    }
+// RepositorySearchViewModel
+private let repository: any RepositorySearchRepositoryProtocol
+
+init(repository: any RepositorySearchRepositoryProtocol = RepositorySearchRepository()) {
+    self.repository = repository
 }
 ```
 
-結果として ViewModel が扱うのは `[GitHubRepository]` と `Bool` だけになり、通信の詳細が画面側に現れません。
+```swift
+// プロトコルが公開しているのはこのメソッドだけ
+protocol RepositorySearchRepositoryProtocol {
+    func searchRepositories(query: String) async throws(APIError) -> [GitHubRepository]
+}
+```
+
+公開しているのは「クエリを渡すと `[GitHubRepository]` が返る」という1つのメソッドだけなので、ViewModel からはデータをどう取得しているかが見えません。そのため、たとえば将来キャッシュを挟むような変更をしても、ViewModel には影響しません。実装クラスの名前が現れるのは、本番の実装を渡しているデフォルト引数の1箇所だけです。
+
+結果として ViewModel が扱うのはドメインのモデルだけになり、通信の詳細が画面側に現れません。
 
 ### 凝集度
 
