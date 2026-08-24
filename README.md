@@ -35,7 +35,7 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [Translator](#translator)
   - [Provider](#provider)
 - [新しく学んだこと](#新しく学んだこと)
-  - [UI が更新されるまでの順序](#ui-が更新されるまでの順序)
+  - [UI が表示・更新されるまでの順序](#ui-が表示更新されるまでの順序)
   - [UICollectionLayoutListConfiguration を用いて設定画面風に実装](#uicollectionlayoutlistconfiguration-を用いて設定画面風に実装)
   - [iOS 26 での検索バーの配置（preferredSearchBarPlacement）](#ios-26-での検索バーの配置preferredsearchbarplacement)
   - [AI が出力したコードのセルフレビュー](#ai-が出力したコードのセルフレビュー)
@@ -672,7 +672,69 @@ let vc = RepositoryDetailViewControllerProvider.build(repository: repository)
 
 ## 新しく学んだこと
 
-### UI が更新されるまでの順序
+### UI が表示・更新されるまでの順序
+
+この節は2部構成です。前半では、画面が最初に表示されるまでに ViewController のライフサイクルメソッド（`viewDidLoad()` や `viewDidAppear(_:)` など）がどの順で呼ばれるかを追います。後半では、表示済みの画面でデータが届いてから再描画されるまでを追います。
+
+#### 画面が最初に表示されるまで（一度だけ起きること）
+
+`RepositorySearchViewController` を例に、生成されてから画面に表示されるまでを順に追います。
+
+**1. ViewController が生成される**
+
+インスタンスが作られただけの状態です。この時点では `view` はまだ存在しません。
+
+**2. `view` が初めて必要になったときに作られ、直後に `viewDidLoad()` が呼ばれる**
+
+`view` は init では作られず、遷移の直前など初めてアクセスされたタイミングで `loadView()` により作られます。作られた直後に `viewDidLoad()` が呼ばれます。
+
+このアプリでは `viewDidLoad()` から `setupViews()` を呼び、`addSubview(_:)` と制約の設定をここで一度だけ行っています。
+
+```swift
+// RepositorySearchViewController
+override func viewDidLoad() {
+    super.viewDidLoad()
+    ...
+    setupViews()
+    ...
+}
+
+private func setupViews() {
+    view.addSubview(collectionView)
+    view.addSubview(emptyStateStackView)
+    view.addSubview(loadingIndicator)
+
+    NSLayoutConstraint.activate([
+        collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+        ...
+    ])
+}
+```
+
+ここで押さえておきたいのは、どちらも「登録するだけ」だという点です。
+
+- `addSubview(_:)` は、ビューを親子関係（View 階層）に登録するだけです。呼んだ瞬間に画面に表示されるわけではなく、そもそも `view` 自体がまだ画面（`UIWindow`）に乗っていません
+- `NSLayoutConstraint.activate(_:)` も、制約という式を登録するだけで、計算はまだ行われません
+
+そのため `viewDidLoad()` の時点では、各ビューの `frame` は確定していません。
+
+**3. `viewWillAppear(_:)` が呼ばれる**
+
+画面に乗る直前に呼ばれます。まだレイアウトは行われていないため、`frame` はここでも確定していません。
+
+**4. `view` が `UIWindow` に追加され、最初のレイアウトが行われる**
+
+遷移が始まると `view` が画面（`UIWindow`）の階層に追加され、最初のレイアウトが走ります。制約から大きさを計算し（末端→親）、結果を各ビューの `frame` に反映します（親→子）。この計算の中身は、後半の手順5（①・②）と同じです。
+
+ViewController 側では、レイアウトの前後で `viewWillLayoutSubviews()` → `viewDidLayoutSubviews()` が呼ばれます。各ビューの `frame` が確定するのはこの後なので、`frame` の値に依存する処理は `viewDidLayoutSubviews()` 以降に書く必要があります。
+
+**5. 描画されて、画面に表示される**
+
+**6. `viewDidAppear(_:)` が呼ばれる**
+
+名前から「表示される直前」と誤解しやすいですが、呼ばれるのは画面に表示され、遷移アニメーションが完了した後です。
+
+#### データが届いてから画面が変わるまで（更新のたびに起きること）
 
 一覧のセルに表示されるリポジトリ名のラベルを例に、データが届いてから画面に表示されるまでを順に追います。
 
@@ -764,6 +826,12 @@ Auto Layout を使う場合、`frame` は自分で設定しません。各ビュ
 **③ 描画を行い、画面に表示される**
 
 `frame` が確定した状態で描画が行われ、画面に表示されます。見た目が変わっていないビューは描き直されません。
+
+#### 2つの流れの対比
+
+この更新のあいだ、`viewDidLoad()` や `viewDidAppear(_:)` といったライフサイクルメソッドは呼ばれません。呼ばれるのは画面の出入りのときだけで、データ更新のたびに走るのはレイアウトと描画だけです。
+
+セルも同様で、`addSubview(_:)` は `RepositoryCell` の `init` から呼ばれる `setupViews()` で一度だけ行われ、再利用されるたびに呼ばれるのは `configure(with:)` だけです。
 
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
