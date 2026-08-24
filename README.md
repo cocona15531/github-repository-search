@@ -35,6 +35,7 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [Translator](#translator)
   - [Provider](#provider)
 - [新しく学んだこと](#新しく学んだこと)
+  - [UI が表示・更新されるまでの順序](#ui-が表示更新されるまでの順序)
   - [UICollectionLayoutListConfiguration を用いて設定画面風に実装](#uicollectionlayoutlistconfiguration-を用いて設定画面風に実装)
   - [iOS 26 での検索バーの配置（preferredSearchBarPlacement）](#ios-26-での検索バーの配置preferredsearchbarplacement)
   - [AI が出力したコードのセルフレビュー](#ai-が出力したコードのセルフレビュー)
@@ -675,6 +676,170 @@ let vc = RepositoryDetailViewControllerProvider.build(repository: repository)
 ```
 
 ## 新しく学んだこと
+
+### UI が表示・更新されるまでの順序
+
+この節は2部構成です。前半では、画面が最初に表示されるまでに ViewController のライフサイクルメソッド（`viewDidLoad()` や `viewDidAppear(_:)` など）がどの順で呼ばれるかを追います。後半では、表示済みの画面でデータが届いてから再描画されるまでを追います。
+
+#### 画面が最初に表示されるまで（一度だけ起きること）
+
+`RepositorySearchViewController` を例に、生成されてから画面に表示されるまでを順に追います。
+
+**1. ViewController が生成される**
+
+インスタンスが作られただけの状態です。この時点では `view` はまだ存在しません。
+
+**2. `view` が初めて必要になったときに作られ、直後に `viewDidLoad()` が呼ばれる**
+
+`view` は init では作られず、遷移の直前など初めてアクセスされたタイミングで `loadView()` により作られます。作られた直後に `viewDidLoad()` が呼ばれます。
+
+このアプリでは `viewDidLoad()` から `setupViews()` を呼び、`addSubview(_:)` と制約の設定をここで一度だけ行っています。
+
+```swift
+// RepositorySearchViewController
+override func viewDidLoad() {
+    super.viewDidLoad()
+    ...
+    setupViews()
+    ...
+}
+
+private func setupViews() {
+    view.addSubview(collectionView)
+    view.addSubview(emptyStateStackView)
+    view.addSubview(loadingIndicator)
+
+    NSLayoutConstraint.activate([
+        collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+        ...
+    ])
+}
+```
+
+ここで押さえておきたいのは、どちらも「登録するだけ」だという点です。
+
+- `addSubview(_:)` は、ビューを親子関係（View 階層）に登録するだけです。呼んだ瞬間に画面に表示されるわけではなく、そもそも `view` 自体がまだ画面（`UIWindow`）に乗っていません
+- `NSLayoutConstraint.activate(_:)` も、制約という式を登録するだけで、計算はまだ行われません
+
+そのため `viewDidLoad()` の時点では、各ビューの `frame` は確定していません。
+
+また、この2つは順序が決まっており、必ず `addSubview(_:)` が先です。制約を有効化すると、UIKit はその制約を「制約に関わるビューの最も近い共通の親ビュー」に追加します。そのため、ビューをまだ階層に追加していない（共通の親がいない）状態で制約を有効化すると、例外が発生してクラッシュします。`setupViews()` で `addSubview(_:)` を先にまとめて行い、そのあとで `NSLayoutConstraint.activate(_:)` を呼んでいるのはこのためです。
+
+**3. `viewWillAppear(_:)` が呼ばれる**
+
+画面に乗る直前に呼ばれます。まだレイアウトは行われていないため、`frame` はここでも確定していません。
+
+**4. `view` が `UIWindow` に追加され、最初のレイアウトが行われる**
+
+遷移が始まると `view` が画面（`UIWindow`）の階層に追加され、最初のレイアウトが走ります。制約から大きさを計算し（末端→親）、結果を各ビューの `frame` に反映します（親→子）。この計算の中身は、後半の手順5（①・②）と同じです。
+
+ViewController 側では、レイアウトの前後で `viewWillLayoutSubviews()` → `viewDidLayoutSubviews()` が呼ばれます。各ビューの `frame` が確定するのはこの後なので、`frame` の値に依存する処理は `viewDidLayoutSubviews()` 以降に書く必要があります。
+
+**5. 描画されて、画面に表示される**
+
+**6. `viewDidAppear(_:)` が呼ばれる**
+
+名前から「表示される直前」と誤解しやすいですが、呼ばれるのは画面に表示され、遷移アニメーションが完了した後です。
+
+#### データが届いてから画面が変わるまで（更新のたびに起きること）
+
+一覧のセルに表示されるリポジトリ名のラベルを例に、データが届いてから画面に表示されるまでを順に追います。
+
+**1. ViewModel が状態を更新する**
+
+```swift
+fetchedRepositories = try await repository.searchRepositories(query: query)
+let repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
+state = .content(repositories)
+```
+
+**2. View が購読で受け取り、スナップショットを適用する**
+
+```swift
+case .content(let repositories):
+    self.loadingIndicator.stopAnimating()
+    self.emptyStateStackView.isHidden = true
+    self.applyItems(repositories)
+```
+
+**3. UICollectionView がセルを用意し、`configure(with:)` が呼ばれる**
+
+セルの生成・再利用は `CellRegistration` のハンドラで行われ、その中で `configure(with:)` を呼んでいます。
+
+```swift
+// RepositorySearchViewController
+let cellRegistration = UICollectionView.CellRegistration<RepositoryCell, RepositoryRowUIModel> { cell, _, repository in
+    cell.configure(with: repository)
+}
+```
+
+```swift
+// RepositoryCell
+func configure(with repository: RepositoryRowUIModel) {
+    nameLabel.text = repository.name
+    descriptionLabel.text = repository.description
+    ownerNameLabel.text = repository.ownerLogin
+    starCountLabel.text = repository.starCountText
+    ...
+}
+```
+
+**4. この時点では、まだ画面は変わらない**
+
+文字列を代入すると、ラベルの `intrinsicContentSize`（内容から決まる大きさ）が変わります。このとき UIKit は内部で `setNeedsLayout()` を呼び、そのビューに「レイアウトが必要」というフラグを立てるだけで、計算は行いません。
+
+`configure(with:)` では名前・説明・オーナー名・スター数と4つの値を代入していますが、代入のたびに計算するのは無駄になるためです。
+
+**5. 次の画面更新のタイミングで、まとめて計算・描画され、画面に表示される**
+
+アプリはイベント（タップや通信の完了など）を処理したあと、画面を描き直します。このとき UIKit は、`setNeedsLayout()` が呼ばれたビューと、その影響を受ける親のビューだけを集めて処理します。値が変わっていないビューは対象にならないため、画面全体を作り直すことはありません。
+
+計算は「大きさを決める → 位置を決める → 描く」の順に進みます。
+
+**① 制約から大きさを計算する**
+
+ラベルは自分の文字列から必要な大きさ（`intrinsicContentSize`）を返します。UIKit は末端のビュー（ラベルや画像など、それ以上子を持たないビュー）から大きさを確定させ、それを積み上げて親の大きさを決めます。
+
+セルの階層は次のようになっており、末端のラベルの高さが決まらないと `UIStackView` の高さが決まらず、それが決まらないとセル全体の高さも決まりません。そのため下（末端）から上（親）へ進みます。
+
+```swift
+// RepositoryCell の View 構造（コード内のコメントより）
+// contentView(W: superView.frame.W, H: 内容に応じて可変（AutoLayoutの自己サイズ計算）)
+//   ┣ nameLabel(W: contentView.frame.W - 32, H: textのsizeに合わせる)
+//   ┣ descriptionLabel(W: contentView.frame.W - 32, H: 最大2行分のtextのsizeに合わせる)
+//   ┣ ownerPillView(UIStackView) (W: 内容に応じた幅, H: 28)
+//   ┃     ┣ avatarImageView(W: 20, H: 20)
+//   ┃     ┗ ownerNameLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+//   ┗ bottomRowStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+//         ┣ starCountLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+//         ┗ languageStackView(UIStackView) (W: 内容に応じた幅, H: 内容に応じたH)
+//               ┣ languageDotView(W: 8, H: 8)
+//               ┗ languageLabel(W: textのsizeに合わせる, H: textのsizeに合わせる)
+```
+
+**② 位置を決める**
+
+①で計算した結果を、各ビューの `frame` に反映します。`frame` は、そのビューが親の座標系のどこに、どれだけの大きさで置かれるかを表す値です。
+
+```
+// contentView の左上を (0, 0) としたときの例
+nameLabel.frame = (x: 16, y: 16, width: 318, height: 20)
+```
+
+Auto Layout を使う場合、`frame` は自分で設定しません。各ビューに `translatesAutoresizingMaskIntoConstraints = false` を指定して「`frame` ではなく制約でレイアウトする」と宣言しており、制約から計算された結果がここに入ります。
+
+親の枠が決まらないと子をどこに置くか決められないため、上（親）から下（子）へ進みます。ここで `layoutSubviews()` が呼ばれます。
+
+**③ 描画を行い、画面に表示される**
+
+`frame` が確定した状態で描画が行われ、画面に表示されます。見た目が変わっていないビューは描き直されません。
+
+#### 2つの流れの対比
+
+この更新のあいだ、`viewDidLoad()` や `viewDidAppear(_:)` といったライフサイクルメソッドは呼ばれません。呼ばれるのは画面の出入りのときだけで、データ更新のたびに走るのはレイアウトと描画だけです。
+
+セルも同様で、`addSubview(_:)` は `RepositoryCell` の `init` から呼ばれる `setupViews()` で一度だけ行われ、再利用されるたびに呼ばれるのは `configure(with:)` だけです。
+
 
 ### UICollectionLayoutListConfiguration を用いて設定画面風に実装
 
