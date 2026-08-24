@@ -24,6 +24,9 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [Combine](#combine)
   - [参照](#参照)
   - [エラー設計](#エラー設計)
+  - [疎結合](#疎結合)
+  - [抽象化](#抽象化)
+  - [凝集度](#凝集度)
   - [DRY 原則](#dry-原則)
   - [APIClient](#apiclient)
   - [ViewState](#viewstate)
@@ -355,6 +358,84 @@ func isStarred(owner: String, name: String) async throws(APIError) -> Bool {
 検索の失敗をアラートで知らせるよう実装しましたが、詳細画面のスター操作の失敗は現時点ではログ出力のみで、ユーザーには通知していません。
 
 
+### 疎結合
+
+疎結合とは、モジュール同士の依存が弱い状態のことです。判断の目安は「片方を変えたときに、もう片方も変える必要があるか」です。
+
+モデルは、層ごとに3つに分けました。API のレスポンスをそのまま受け取る `RepositoryResponse`、アプリ内でリポジトリを表す `GitHubRepository`、画面にそのまま表示できる `RepositoryRowUIModel` です。層をまたぐときは Translator で変換しています。
+
+その結果、View が受け取るのは表示用の UIModel だけになり、`RepositoryCell` には `GitHubRepository` が1度も出てきません。API のレスポンス形状が変わっても、影響は `RepositoryResponse` と `RepositoryTranslator` に閉じ、View まで波及しません。
+
+```swift
+// セルが受け取るのは表示用の UIModel だけ
+func configure(with repository: RepositoryRowUIModel) {
+    nameLabel.text = repository.name
+    descriptionLabel.text = repository.description
+    starCountLabel.text = repository.starCountText
+    ...
+}
+```
+
+
+### 抽象化
+
+抽象化とは、詳細を隠して本質だけを見せることです。使う側が知らなくていいことを見せないようにします。
+
+ViewModel から見て何が隠れているかを整理すると、次のようになります。
+
+| ViewModel が知らないこと | 隠している場所 |
+| --- | --- |
+| データの取得方法 | `RepositorySearchRepositoryProtocol` |
+| JSON のキー名（`stargazers_count` など） | `RepositoryResponse` と `RepositoryTranslator` |
+| エンドポイントのパスや HTTP メソッド | `RequestType` に準拠した各構造体 |
+| レスポンスボディがない成功（204） | `NoContent` という型 |
+
+たとえば ViewModel が保持しているのは、Repository の実装ではなくプロトコルです。
+
+```swift
+// RepositorySearchViewModel
+private let repository: any RepositorySearchRepositoryProtocol
+
+init(repository: any RepositorySearchRepositoryProtocol = RepositorySearchRepository()) {
+    self.repository = repository
+}
+```
+
+```swift
+// プロトコルが公開しているのはこのメソッドだけ
+protocol RepositorySearchRepositoryProtocol {
+    func searchRepositories(query: String) async throws(APIError) -> [GitHubRepository]
+}
+```
+
+公開しているのは「クエリを渡すと `[GitHubRepository]` が返る」という1つのメソッドだけなので、ViewModel からはデータをどう取得しているかが見えません。そのため、たとえば将来キャッシュを挟むような変更をしても、ViewModel には影響しません。
+
+テスト観点においても、もし `RepositorySearchRepository` という実装クラスに直接依存すると、ViewModel は常に本物の通信を伴うことになり、差し替えの余地がなくなります。プロトコルに依存させているため、それを満たすスタブを `init` から渡せば、通信を行わずに ViewModel の状態遷移だけを検証できます。`throw` するスタブを渡せば、実際に API を失敗させなくてもエラー時の挙動を確かめられます。
+
+### 凝集度
+
+凝集度とは、クラスやモジュールの中の機能が、どれだけ関連性の高い目的にまとまっているかを示す指標です。1つの責務に集中しているほど変更しやすく、再利用もしやすくなります。
+
+型ごとの責務は1つに絞りました。たとえば `LanguageColor` は「言語名から色を返す」ことだけを担っており、それ以外の関心事を持っていません。
+
+```swift
+/// 主要言語ごとの色分け（GitHubの言語カラーに準拠した簡易マッピング）。
+enum LanguageColor {
+    static func color(for language: String) -> UIColor {
+        colors[language] ?? .systemGray3
+    }
+
+    private static let colors: [String: UIColor] = [
+        "Swift": color(hex: 0xF05138),
+        "Python": color(hex: 0x3572A5),
+        ...
+    ]
+}
+```
+
+この型を読むときに把握する必要があるのは、言語と色の対応だけです。色の追加や変更が必要になったときも、影響はこの型の中に収まります。
+
+
 ### DRY 原則
 
 このアプリでは、DRY 原則を意識して開発を行いました。DRY（Don't Repeat Yourself）とは、同じ知識を複数の場所に持たないという原則です。同じコードを書かないことではなく、同じ知識が散らばって片方だけ修正される状態を避けることが目的だと理解しています。今回は、変更したときに触る場所が1か所に収まるよう意識しました。
@@ -400,7 +481,6 @@ private static func makeSubLabel() -> UILabel {
     return label
 }
 ```
-
 
 ### APIClient
 
