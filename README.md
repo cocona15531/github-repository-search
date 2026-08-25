@@ -92,7 +92,9 @@ MVVM + Repository を構成する Model・ViewModel・View・Repository につ�
 
 アプリが扱うデータを表すレイヤーです。このアプリでは、API レスポンスから変換した DataModel（`GitHubRepository`）と、画面表示用に整形した UIModel（`RepositoryRowUIModel` / `RepositoryDetailUIModel`）の2つを Model として扱っています。
 
-DataModel は API の都合からも画面の表示都合からも独立した「リポジトリ」という概念そのものを表すモデルで、検索画面と詳細画面の両方がこの型を使い回します。UIModel は「この画面に、何をどう表示すべきか」を表す画面ごとのモデルで、nil の穴埋めや文字列整形を済ませた値を持たせ、View はただ代入するだけにしています。API レスポンス → DataModel → UIModel の変換は Translator に集約しています（詳細は [Translator](#translator)）。
+DataModel は API の都合からも画面の表示都合からも独立した「リポジトリ」という概念そのものを表すモデルで、検索画面と詳細画面の両方がこの型を使い回します。
+
+UIModel は「この画面に、何をどう表示すべきか」を表す画面ごとのモデルで、nil の穴埋めや文字列整形を済ませた値を持たせ、View はただ代入するだけにしています。API レスポンス → DataModel → UIModel の変換は Translator に集約しています（詳細は [Translator](#translator)）。
 
 ```swift
 /// API のレスポンス形状にも画面の表示形式にも依存しない、リポジトリという概念そのものを表す構造体。
@@ -123,7 +125,9 @@ nonisolated struct RepositoryRowUIModel: Hashable, Sendable {
 
 #### ViewModel
 
-画面の表示状態を持ち、View からの入力をきっかけに状態を更新するレイヤーです。責務は、View からの入力（`didSubmitSearch` など）をメソッドで受けて何をするかを決めること、Repository から取得した DataModel を UIModel に変換して状態（`ViewState` / `uiModel` / `Router`）として公開すること、そして画面が取りうる状態を `ViewState` として定義し、今どの状態かを決めることです。状態を1つにまとめているため、「ローディング中は空表示を隠す」のような表示の組み合わせの記述は、View 側で状態ごとに1か所へまとまります。
+画面の表示状態を持ち、View からの入力をきっかけに状態を更新するレイヤーです。責務は、View からの入力（`didSubmitSearch` など）をメソッドで受けて何をするかを決めること、Repository から取得した DataModel を UIModel に変換して状態（`ViewState` / `uiModel` / `Router`）として公開すること、そして画面が取りうる状態を `ViewState` として定義し、今どの状態かを決めることです。
+
+状態を1つにまとめているため、「ローディング中は空表示を隠す」のような表示の組み合わせの記述は、View 側で状態ごとに1か所へまとまります。
 
 一方で、View への参照は持たず、`UIKit` も import しません。通信の詳細も知らず、Repository のプロトコル越しにデータを受け取るだけです。
 
@@ -166,7 +170,9 @@ final class RepositorySearchViewModel {
 
 #### View
 
-UI 部品の生成・レイアウトと、ViewModel の状態の購読・描画を担当するレイヤー（ViewController）です。ユーザーの操作は ViewModel のメソッド呼び出しに変換して伝えるだけで、「何をするか」の判断は持ちません。また、文字列の整形や nil の穴埋めといった加工は UIModel 側で済ませているため、View はその値を UI 部品へ代入するだけです。View に残っている分岐は、`languageText` が nil なら言語表示を行ごと隠す、画像の読み込みに失敗したら代替アイコンを出す、といった表示/非表示や見た目の制御に関するものだけで、値をどう整形するかの判断は現れません。
+UI 部品の生成・レイアウトと、ViewModel の状態の購読・描画を担当するレイヤー（ViewController）です。ユーザーの操作は ViewModel のメソッド呼び出しに変換して伝えるだけで、「何をするか」の判断は持ちません。
+
+また、文字列の整形や nil の穴埋めといった加工は UIModel 側で済ませているため、View はその値を UI 部品へ代入するだけです。View に残っている分岐は、`languageText` が nil なら言語表示を行ごと隠す、画像の読み込みに失敗したら代替アイコンを出す、といった表示/非表示や見た目の制御に関するものだけで、値をどう整形するかの判断は現れません。
 
 ```swift
 // 入力: 操作を ViewModel に伝えるだけで、何をするかは ViewModel が決める
@@ -207,7 +213,9 @@ private func setupUI(_ uiModel: RepositoryDetailUIModel) {
 
 #### Repository
 
-ViewModel に対するデータ取得の窓口です。「データがどこから・どうやって来るか」を隠蔽し、APIClient から受け取ったレスポンスを DataModel に変換して返します。「スター済み = 204 / 未スター = 404」のような API 固有の仕様もこの層で吸収し、呼び出し側にステータスコードの知識を持ち込ませません（詳細は [エラー設計](#エラー設計)）。また、ViewModel が参照するのはプロトコルだけなので、テスト時にはモックへ差し替えられます（プロトコル設計の詳細は [Repository](#repository-1)）。
+ViewModel に対するデータ取得の窓口です。「データがどこから・どうやって来るか」を隠蔽し、APIClient から受け取ったレスポンスを DataModel に変換して返します。「スター済み = 204 / 未スター = 404」のような API 固有の仕様もこの層で吸収し、呼び出し側にステータスコードの知識を持ち込ませません（詳細は [エラー設計](#エラー設計)）。
+
+また、ViewModel が参照するのはプロトコルだけなので、テスト時にはモックへ差し替えられます（プロトコル設計の詳細は [Repository](#repository-1)）。
 
 ```swift
 protocol RepositorySearchRepositoryProtocol {
