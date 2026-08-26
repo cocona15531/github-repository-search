@@ -16,6 +16,11 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
 - [セットアップ](#セットアップ)
 - [アーキテクチャ](#アーキテクチャ)
   - [MVVM + Repository の構成](#mvvm--repository-の構成)
+  - [各レイヤーの役割・責務](#各レイヤーの役割責務)
+    - [Model](#model)
+    - [ViewModel](#viewmodel)
+    - [View](#view)
+    - [Repository](#repository)
   - [MVP で書いた場合との比較](#mvp-で書いた場合との比較)
     - [MVVM のメリット（MVP と比べて）](#mvvm-のメリットmvp-と比べて)
     - [MVVM のデメリット（MVP と比べて）](#mvvm-のデメリットmvp-と比べて)
@@ -31,7 +36,7 @@ GitHub の REST API を使って公開リポジトリを検索・閲覧できる
   - [APIClient](#apiclient)
   - [ViewState](#viewstate)
   - [Router](#router)
-  - [Repository](#repository)
+  - [Repository](#repository-1)
   - [Translator](#translator)
   - [Provider](#provider)
 - [新しく学んだこと](#新しく学んだこと)
@@ -78,6 +83,159 @@ enum Secrets {
 MVVM は View / ViewModel / Model に分け、ViewModel が画面の表示状態を持ち、View はそれを購読して描画する構成です。ViewModel は View を参照しないため、依存は View → ViewModel の一方向になります。
 
 ただし MVVM をそのまま採用すると、ViewModel が画面の状態管理や表示ロジックに加えて API 通信やキャッシュの処理まで抱え込み、肥大化してしまいます。そこで Repository を導入し、データ取得に関する処理を分離しました。その結果、ViewModel は画面状態と表示ロジックの管理に専念でき、テスト時には Repository をモックへ差し替えられる構成になっています。テスト自体は今回実装できていないため、今後の課題として取り組む予定です。
+
+### 各レイヤーの役割・責務
+
+MVVM + Repository を構成する Model・ViewModel・View・Repository について、それぞれの役割・責務と実際のコードを示します。
+
+#### Model
+
+アプリが扱うデータを表すレイヤーです。このアプリでは、API レスポンスから変換した DataModel（`GitHubRepository`）と、画面表示用に整形した UIModel（`RepositoryRowUIModel` / `RepositoryDetailUIModel`）の2つを Model として扱っています。
+
+DataModel は API の都合からも画面の表示都合からも独立した「リポジトリ」という概念そのものを表すモデルで、検索画面と詳細画面の両方がこの型を使い回します。
+
+UIModel は「この画面に、何をどう表示すべきか」を表す画面ごとのモデルで、nil の穴埋めや文字列整形を済ませた値を持たせ、View はただ代入するだけにしています。API レスポンス → DataModel → UIModel の変換は Translator に集約しています（詳細は [Translator](#translator)）。
+
+```swift
+/// API のレスポンス形状にも画面の表示形式にも依存しない、リポジトリという概念そのものを表す構造体。
+struct GitHubRepository: Sendable, Equatable {
+    let id: Int
+    let name: String
+    let description: String?
+    let stargazersCount: Int
+    let language: String?
+    let owner: Owner
+    let forksCount: Int
+    let openIssuesCount: Int
+    let updatedAtString: String?
+    let topics: [String]
+}
+
+/// 1セル分をそのまま画面に表示できる形になったデータモデル。
+nonisolated struct RepositoryRowUIModel: Hashable, Sendable {
+    let id: Int
+    let name: String
+    let description: String
+    let starCountText: String
+    let ownerLogin: String
+    let ownerAvatarURL: URL?
+    let languageText: String?
+}
+```
+
+#### ViewModel
+
+画面の表示状態を持ち、View からの入力をきっかけに状態を更新するレイヤーです。責務は、View からの入力（`didSubmitSearch` など）をメソッドで受けて何をするかを決めること、Repository から取得した DataModel を UIModel に変換して状態（`ViewState` / `uiModel` / `Router`）として公開すること、そして画面が取りうる状態を `ViewState` として定義し、今どの状態かを決めることです。
+
+状態を1つにまとめているため、「ローディング中は空表示を隠す」のような表示の組み合わせの記述は、View 側で状態ごとに1か所へまとまります。
+
+一方で、View への参照は持たず、`UIKit` も import しません。通信の詳細も知らず、Repository のプロトコル越しにデータを受け取るだけです。
+
+```swift
+@MainActor
+final class RepositorySearchViewModel {
+    /// 検索画面の状態。View はこれを購読して表示に使う。
+    @Published private(set) var state: ViewState = .initial
+    /// 画面遷移のトリガー。セル選択時に遷移先が入る。
+    @Published private(set) var router: Router?
+
+    /// View からの検索文字列の送信口。init で購読し、値が流れたら search(query:) を実行する（購読の設定は Combine の節を参照）。
+    private let searchQuerySubmitted = PassthroughSubject<String, Never>()
+    private let repository: any RepositorySearchRepositoryProtocol
+    private var fetchedRepositories: [GitHubRepository] = []
+
+    /// 検索が実行されたことをこの ViewModel に伝える。
+    func didSubmitSearch(query: String) {
+        searchQuerySubmitted.send(query)
+    }
+
+    /// セルが選択されたことをこの ViewModel に伝える。遷移先（Router）の決定をここで行う。
+    func didSelectRepository(id: Int) {
+        guard let repository = fetchedRepositories.first(where: { $0.id == id }) else { return }
+        router = .detail(repository)
+    }
+
+    private func search(query: String) async {
+        state = .loading
+        do {
+            fetchedRepositories = try await repository.searchRepositories(query: query)
+            let repositories = fetchedRepositories.map { RepositorySearchUIModelTranslator.translate(from: $0) }
+            state = .content(repositories)
+        } catch {
+            state = .error(error.localizedDescription)
+        }
+    }
+}
+```
+
+#### View
+
+UI 部品の生成・レイアウトと、ViewModel の状態の購読・描画を担当するレイヤー（ViewController）です。ユーザーの操作は ViewModel のメソッド呼び出しに変換して伝えるだけで、「何をするか」の判断は持ちません。
+
+また、文字列の整形や nil の穴埋めといった加工は UIModel 側で済ませているため、View はその値を UI 部品へ代入するだけです。View に残っている分岐は、`languageText` が nil なら言語表示を行ごと隠す、画像の読み込みに失敗したら代替アイコンを出す、といった表示/非表示や見た目の制御に関するものだけで、値をどう整形するかの判断は現れません。
+
+```swift
+// 入力: 操作を ViewModel に伝えるだけで、何をするかは ViewModel が決める
+starButton.addAction(UIAction { [weak self] _ in
+    self?.viewModel.didTapStar()
+}, for: .touchUpInside)
+```
+
+```swift
+// 出力: 状態を購読し、UIModel の値をそのまま代入する
+viewModel.$uiModel
+    .receive(on: DispatchQueue.main)
+    .sink { [weak self] uiModel in
+        self?.setupUI(uiModel)
+    }
+    .store(in: &cancellables)
+
+/// uiModel の内容を各 UI コンポーネントへ反映する。
+private func setupUI(_ uiModel: RepositoryDetailUIModel) {
+    ownerNameLabel.text = uiModel.ownerName
+    repositoryNameLabel.text = uiModel.repositoryName
+    descriptionLabel.text = uiModel.description
+    starCountLabel.text = uiModel.starCountText
+    forkCountLabel.text = uiModel.forkCountText
+    issueCountLabel.text = uiModel.issueCountText
+
+    // View に残る分岐の例: 値の整形ではなく、表示/非表示の切り替えだけを行う
+    if let languageText = uiModel.languageText {
+        languageLabel.text = languageText
+        languageDotView.backgroundColor = LanguageColor.color(for: languageText)
+        languageStackView.isHidden = false
+    } else {
+        languageStackView.isHidden = true
+    }
+    ...
+}
+```
+
+#### Repository
+
+ViewModel に対するデータ取得の窓口です。「データがどこから・どうやって来るか」を隠蔽し、APIClient から受け取ったレスポンスを DataModel に変換して返します。「スター済み = 204 / 未スター = 404」のような API 固有の仕様もこの層で吸収し、呼び出し側にステータスコードの知識を持ち込ませません（詳細は [エラー設計](#エラー設計)）。
+
+また、ViewModel が参照するのはプロトコルだけなので、テスト時にはモックへ差し替えられます（プロトコル設計の詳細は [Repository](#repository-1)）。
+
+```swift
+protocol RepositorySearchRepositoryProtocol {
+    func searchRepositories(query: String) async throws(APIError) -> [GitHubRepository]
+}
+
+final class RepositorySearchRepository: RepositorySearchRepositoryProtocol {
+    private let apiClient: any RepositorySearchServiceProtocol
+
+    init(apiClient: any RepositorySearchServiceProtocol = APIClient()) {
+        self.apiClient = apiClient
+    }
+
+    func searchRepositories(query: String) async throws(APIError) -> [GitHubRepository] {
+        // レスポンスを DataModel に変換して返すため、ViewModel には API レスポンスの形が漏れない
+        let response = try await apiClient.searchRepositories(SearchRepositoriesRequest(query: query))
+        return response.repositories.map { RepositoryTranslator.translate(from: $0) }
+    }
+}
+```
 
 ### MVP で書いた場合との比較
 
